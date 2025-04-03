@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <title>About Us</title>
+  <style>
+    .hero-bg {
+      background-image: url('https://source.unsplash.com/1600x900/?healthcare,hospital');
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      height: 60vh;
+    }
+    .overlay {
+      background: rgba(0, 0, 0, 0.5);
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+  
+  <!-- Navigation Bar -->
+  <nav class="w-full p-5 bg-blue-900 text-white flex justify-between items-center shadow-md">
+    <h1 class="text-3xl font-bold">Appointment System</h1>
+    <div>
+      <a href="index.html" class="hover:text-gray-300 transition duration-300 mr-4">Home</a>
+      <a href="contact.html" class="hover:text-gray-300 transition duration-300">Contact Us</a>
+    </div>
+  </nav>
+  
+  <!-- Hero Section -->
+  <header class="hero-bg relative flex items-center justify-center text-center">
+    <div class="overlay absolute inset-0"></div>
+    <h2 class="relative text-5xl font-bold text-white">About Us</h2>
+  </header>
+
+  <!-- About Us Section -->
+  <section class="mt-10 max-w-4xl mx-auto text-center px-6">
+    <p class="text-lg text-gray-700 leading-relaxed">
+      We provide an easy and efficient way for patients to book appointments with top doctors. 
+      Our system ensures seamless scheduling, real-time availability updates, and a hassle-free experience.
+    </p>
+  </section>
+
+  <!-- Features Section -->
+  <section class="mt-10 max-w-5xl mx-auto px-6">
+    <h3 class="text-3xl font-semibold text-blue-900 text-center mb-6">Why Choose Us?</h3>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+      <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+        <img src="https://via.placeholder.com/100" class="mx-auto mb-4" alt="Scheduling">
+        <h4 class="text-xl font-bold">Easy Scheduling</h4>
+        <p class="text-gray-600">Book appointments with just a few clicks.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+        <img src="https://via.placeholder.com/100" class="mx-auto mb-4" alt="Expert Doctors">
+        <h4 class="text-xl font-bold">Expert Doctors</h4>
+        <p class="text-gray-600">Consult with highly qualified professionals.</p>
+      </div>
+      <div class="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition duration-300">
+        <img src="https://via.placeholder.com/100" class="mx-auto mb-4" alt="Secure System">
+        <h4 class="text-xl font-bold">Secure System</h4>
+        <p class="text-gray-600">Your data and privacy are our top priorities.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="mt-10 max-w-4xl mx-auto text-center px-6">
+    <h3 class="text-3xl font-semibold text-blue-900 mb-4">Get in Touch</h3>
+    <p class="text-lg text-gray-700">Have any questions? Contact us via email or phone.</p>
+    <a href="contact.html" class="mt-4 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-lg transition duration-300">
+      Contact Us
+    </a>
+  </section>
+
+  <!-- Footer -->
+  <footer class="mt-20 bg-blue-900 text-white text-center py-4">
+    <p>&copy; 2025 Appointment System. All Rights Reserved.</p>
+  </footer>
+
+</body>
+</html>
