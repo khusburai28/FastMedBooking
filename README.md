@@ -1,1 +1,1 @@
-# Doctor_Patient_Appointment_Booking
+# FastMedBooking
