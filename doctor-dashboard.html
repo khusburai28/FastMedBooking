@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard - FastMedBooking</title>
+  <link rel="stylesheet" href="static/css/style.css">
+  <link rel="stylesheet" href="static/css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Dashboard specific styles */
+    .dashboard {
+      padding-top: 100px;
+      min-height: calc(100vh - 100px);
+      background-color: var(--neutral-200);
+    }
+    
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 250px 1fr;
+      gap: var(--spacing-lg);
+    }
+    
+    .sidebar {
+      background-color: var(--neutral-100);
+      border-radius: var(--border-radius-lg);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      height: fit-content;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      margin-bottom: var(--spacing-lg);
+      padding-bottom: var(--spacing-md);
+      border-bottom: 1px solid var(--neutral-300);
+    }
+    
+    .user-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: var(--spacing-md);
+      border: 3px solid var(--secondary);
+    }
+    
+    .user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .user-name {
+      font-weight: 600;
+      margin-bottom: 0;
+    }
+    
+    .user-type {
+      color: var(--secondary);
+      font-size: 0.9rem;
+    }
+    
+    .nav-menu {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-sm);
+    }
+    
+    .nav-menu a {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-sm);
+      padding: var(--spacing-sm) var(--spacing-md);
+      border-radius: var(--border-radius-md);
+      color: var(--neutral-800);
+      transition: var(--transition-fast);
+    }
+    
+    .nav-menu a:hover, .nav-menu a.active {
+      background-color: rgba(52, 168, 83, 0.1);
+      color: var(--secondary);
+    }
+    
+    .nav-menu a i {
+      width: 20px;
+      text-align: center;
+    }
+    
+    .content-area {
+      padding: var(--spacing-md);
+    }
+    
+    .dashboard-header {
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .dashboard-title {
+      font-size: 1.8rem;
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .dashboard-subtitle {
+      color: var(--neutral-700);
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xl);
+    }
+    
+    .stat-card {
+      background-color: var(--neutral-100);
+      border-radius: var(--border-radius-md);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 5px;
+      height: 100%;
+      background-color: var(--secondary);
+    }
+    
+    .stat-card.today::before {
+      background-color: var(--secondary);
+    }
+    
+    .stat-card.patients::before {
+      background-color: var(--primary);
+    }
+    
+    .stat-card.revenue::before {
+      background-color: var(--accent);
+    }
+    
+    .stat-card.rating::before {
+      background-color: var(--info);
+    }
+    
+    .stat-icon {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 2.5rem;
+      opacity: 0.1;
+      color: var(--secondary);
+    }
+    
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .stat-label {
+      font-size: 1rem;
+      color: var(--neutral-700);
+    }
+    
+    .card {
+      background-color: var(--neutral-100);
+      border-radius: var(--border-radius-md);
+      padding: var(--spacing-lg);
+      box-shadow: var(--shadow-sm);
+      margin-bottom: var(--spacing-lg);
+    }
+    
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+      padding-bottom: var(--spacing-sm);
+      border-bottom: 1px solid var(--neutral-300);
+    }
+    
+    .card-title {
+      font-size: 1.2rem;
+      margin-bottom: 0;
+    }
+    
+    .appointment-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--spacing-md);
+    }
+    
+    .appointment-card {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--spacing-md);
+      padding: var(--spacing-md);
+      border-radius: var(--border-radius-md);
+      background-color: var(--neutral-200);
+      border-left: 4px solid var(--secondary);
+    }
+    
+    .appointment-card.upcoming {
+      border-left-color: var(--secondary);
+    }
+    
+    .appointment-card.awaiting {
+      border-left-color: var(--accent);
+    }
+    
+    .patient-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      overflow: hidden;
+    }
+    
+    .patient-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .appointment-details {
+      flex: 1;
+    }
+    
+    .appointment-details h4 {
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .appointment-meta {
+      display: flex;
+      gap: var(--spacing-md);
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .appointment-meta span {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-xs);
+      font-size: 0.9rem;
+      color: var(--neutral-700);
+    }
+    
+    .appointment-status {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+    }
+    
+    .status-upcoming {
+      background-color: rgba(52, 168, 83, 0.1);
+      color: var(--secondary);
+    }
+    
+    .status-awaiting {
+      background-color: rgba(251, 188, 5, 0.1);
+      color: var(--accent);
+    }
+    
+    .appointment-actions {
+      display: flex;
+      gap: var(--spacing-sm);
+      margin-top: var(--spacing-sm);
+    }
+    
+    .btn-sm {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+    
+    .calendar-widget {
+      min-height: 400px;
+    }
+    
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: var(--spacing-md);
+    }
+    
+    .calendar-nav {
+      display: flex;
+      gap: var(--spacing-sm);
+    }
+    
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: var(--spacing-xs);
+    }
+    
+    .calendar-day {
+      min-height: 100px;
+      border-radius: var(--border-radius-sm);
+      border: 1px solid var(--neutral-300);
+      padding: var(--spacing-xs);
+      position: relative;
+    }
+    
+    .calendar-date {
+      font-weight: 500;
+      margin-bottom: var(--spacing-xs);
+    }
+    
+    .calendar-events {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    
+    .calendar-event {
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      background-color: rgba(52, 168, 83, 0.1);
+      color: var(--secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .day-names {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      margin-bottom: var(--spacing-xs);
+      text-align: center;
+    }
+    
+    .day-name {
+      font-weight: 500;
+      color: var(--neutral-700);
+    }
+    
+    @media (max-width: 992px) {
+      .dashboard-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        height: 100vh;
+        width: 250px;
+        z-index: 1000;
+        transition: var(--transition-normal);
+      }
+      
+      .sidebar.active {
+        left: 0;
+      }
+      
+      .mobile-menu-toggle {
+        display: flex;
+        align-items: center;
+        margin-bottom: var(--spacing-md);
+      }
+      
+      .mobile-menu-toggle button {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        color: var(--secondary);
+        cursor: pointer;
+      }
+    }
+    
+    @media (min-width: 993px) {
+      .mobile-menu-toggle {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Dashboard Section -->
+  <div class="dashboard">
+    <div class="container">
+      <!-- Mobile Menu Toggle -->
+      <div class="mobile-menu-toggle">
+        <button id="mobileMenuToggle">
+          <i class="fas fa-bars"></i> Menu
+        </button>
+      </div>
+      
+      <div class="dashboard-grid">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+          <div class="user-info">
+            <div class="user-avatar">
+              <img src="https://images.pexels.com/photos/5214961/pexels-photo-5214961.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="User Avatar">
+            </div>
+            <div>
+              <h3 class="user-name">Dr. Aisha Sharma</h3>
+              <p class="user-type">Cardiologist</p>
+            </div>
+          </div>
+          
+          <nav class="nav-menu">
+            <a href="#" class="active">
+              <i class="fas fa-th-large"></i> Dashboard
+            </a>
+            <a href="#">
+              <i class="fas fa-calendar-check"></i> Appointments
+            </a>
+            <a href="#">
+              <i class="fas fa-user-injured"></i> Patients
+            </a>
+            <a href="#">
+              <i class="fas fa-file-medical"></i> Medical Records
+            </a>
+            <a href="#">
+              <i class="fas fa-pills"></i> Prescriptions
+            </a>
+            <a href="#">
+              <i class="fas fa-credit-card"></i> Payments
+            </a>
+            <a href="#">
+              <i class="fas fa-chart-line"></i> Analytics
+            </a>
+            <a href="#">
+              <i class="fas fa-cog"></i> Settings
+            </a>
+            <a href="../index.html">
+              <i class="fas fa-sign-out-alt"></i> Logout
+            </a>
+          </nav>
+        </div>
+        
+        <!-- Main Content Area -->
+        <div class="content-area">
+          <div class="dashboard-header">
+            <h1 class="dashboard-title">Doctor Dashboard</h1>
+            <p class="dashboard-subtitle">Welcome back, Dr. Sharma! Here's an overview of your appointments and patients.</p>
+          </div>
+          
+          <!-- Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card today">
+              <i class="fas fa-calendar-day stat-icon"></i>
+              <h2 class="stat-value">8</h2>
+              <p class="stat-label">Today's Appointments</p>
+            </div>
+            
+            <div class="stat-card patients">
+              <i class="fas fa-user-injured stat-icon"></i>
+              <h2 class="stat-value">124</h2>
+              <p class="stat-label">Total Patients</p>
+            </div>
+            
+            <div class="stat-card revenue">
+              <i class="fas fa-rupee-sign stat-icon"></i>
+              <h2 class="stat-value">₹25K</h2>
+              <p class="stat-label">Weekly Revenue</p>
+            </div>
+            
+            <div class="stat-card rating">
+              <i class="fas fa-star stat-icon"></i>
+              <h2 class="stat-value">4.9</h2>
+              <p class="stat-label">Average Rating</p>
+            </div>
+          </div>
+          
+          <!-- Today's Appointments -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Today's Appointments</h3>
+              <div>
+                <button class="btn btn-outline btn-sm">All</button>
+                <button class="btn btn-secondary btn-sm">Today</button>
+              </div>
+            </div>
+            
+            <div class="appointment-list">
+              <div class="appointment-card upcoming">
+                <div class="patient-avatar">
+                  <img src="https://images.pexels.com/photos/1043471/pexels-photo-1043471.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Patient">
+                </div>
+                <div class="appointment-details">
+                  <h4>Rahul Singh</h4>
+                  <p>Cardiac Checkup</p>
+                  <div class="appointment-meta">
+                    <span><i class="fas fa-calendar-alt"></i> Today</span>
+                    <span><i class="fas fa-clock"></i> 10:30 AM</span>
+                    <span><i class="fas fa-phone-alt"></i> +91 9876543210</span>
+                  </div>
+                  <span class="appointment-status status-upcoming">Confirmed</span>
+                  <div class="appointment-actions">
+                    <button class="btn btn-secondary btn-sm">Start Consultation</button>
+                    <button class="btn btn-outline btn-sm">View Details</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="appointment-card upcoming">
+                <div class="patient-avatar">
+                  <img src="https://images.pexels.com/photos/1239291/pexels-photo-1239291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Patient">
+                </div>
+                <div class="appointment-details">
+                  <h4>Priya Malhotra</h4>
+                  <p>Blood Pressure Checkup</p>
+                  <div class="appointment-meta">
+                    <span><i class="fas fa-calendar-alt"></i> Today</span>
+                    <span><i class="fas fa-clock"></i> 11:45 AM</span>
+                    <span><i class="fas fa-phone-alt"></i> +91 9865432101</span>
+                  </div>
+                  <span class="appointment-status status-upcoming">Confirmed</span>
+                  <div class="appointment-actions">
+                    <button class="btn btn-secondary btn-sm">Start Consultation</button>
+                    <button class="btn btn-outline btn-sm">View Details</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="appointment-card upcoming">
+                <div class="patient-avatar">
+                  <img src="https://images.pexels.com/photos/2379005/pexels-photo-2379005.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Patient">
+                </div>
+                <div class="appointment-details">
+                  <h4>Amit Kumar</h4>
+                  <p>Post Surgery Follow-up</p>
+                  <div class="appointment-meta">
+                    <span><i class="fas fa-calendar-alt"></i> Today</span>
+                    <span><i class="fas fa-clock"></i> 2:15 PM</span>
+                    <span><i class="fas fa-phone-alt"></i> +91 9754321098</span>
+                  </div>
+                  <span class="appointment-status status-upcoming">Confirmed</span>
+                  <div class="appointment-actions">
+                    <button class="btn btn-secondary btn-sm">Start Consultation</button>
+                    <button class="btn btn-outline btn-sm">View Details</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Appointment Requests -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Appointment Requests</h3>
+              <span>3 new requests</span>
+            </div>
+            
+            <div class="appointment-list">
+              <div class="appointment-card awaiting">
+                <div class="patient-avatar">
+                  <img src="https://images.pexels.com/photos/1036623/pexels-photo-1036623.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Patient">
+                </div>
+                <div class="appointment-details">
+                  <h4>Sonia Verma</h4>
+                  <p>Chest Pain Consultation</p>
+                  <div class="appointment-meta">
+                    <span><i class="fas fa-calendar-alt"></i> May 16, 2025</span>
+                    <span><i class="fas fa-clock"></i> 3:30 PM</span>
+                    <span><i class="fas fa-phone-alt"></i> +91 9654321876</span>
+                  </div>
+                  <span class="appointment-status status-awaiting">Awaiting Confirmation</span>
+                  <div class="appointment-actions">
+                    <button class="btn btn-secondary btn-sm">Accept</button>
+                    <button class="btn btn-outline btn-sm">Reschedule</button>
+                    <button class="btn btn-outline btn-sm">Decline</button>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="appointment-card awaiting">
+                <div class="patient-avatar">
+                  <img src="https://images.pexels.com/photos/3778603/pexels-photo-3778603.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2" alt="Patient">
+                </div>
+                <div class="appointment-details">
+                  <h4>Rohit Sharma</h4>
+                  <p>First Consultation</p>
+                  <div class="appointment-meta">
+                    <span><i class="fas fa-calendar-alt"></i> May 17, 2025</span>
+                    <span><i class="fas fa-clock"></i> 10:00 AM</span>
+                    <span><i class="fas fa-phone-alt"></i> +91 9543210987</span>
+                  </div>
+                  <span class="appointment-status status-awaiting">Awaiting Confirmation</span>
+                  <div class="appointment-actions">
+                    <button class="btn btn-secondary btn-sm">Accept</button>
+                    <button class="btn btn-outline btn-sm">Reschedule</button>
+                    <button class="btn btn-outline btn-sm">Decline</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Calendar Widget -->
+          <div class="card calendar-widget">
+            <div class="calendar-header">
+              <h3 class="card-title">May 2025</h3>
+              <div class="calendar-nav">
+                <button class="btn btn-outline btn-sm"><i class="fas fa-chevron-left"></i></button>
+                <button class="btn btn-outline btn-sm">Today</button>
+                <button class="btn btn-outline btn-sm"><i class="fas fa-chevron-right"></i></button>
+              </div>
+            </div>
+            
+            <div class="day-names">
+              <div class="day-name">Sun</div>
+              <div class="day-name">Mon</div>
+              <div class="day-name">Tue</div>
+              <div class="day-name">Wed</div>
+              <div class="day-name">Thu</div>
+              <div class="day-name">Fri</div>
+              <div class="day-name">Sat</div>
+            </div>
+            
+            <div class="calendar-grid">
+              <!-- First week -->
+              <div class="calendar-day">
+                <div class="calendar-date">1</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">3 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">2</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">5 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">3</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">2 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">4</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">4 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">5</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">6 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">6</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">3 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">7</div>
+                <div class="calendar-events"></div>
+              </div>
+              
+              <!-- Second week -->
+              <div class="calendar-day">
+                <div class="calendar-date">8</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">2 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">9</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">4 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">10</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">5 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">11</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">3 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">12</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">4 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">13</div>
+                <div class="calendar-events">
+                  <div class="calendar-event">2 appointments</div>
+                </div>
+              </div>
+              <div class="calendar-day">
+                <div class="calendar-date">14</div>
+                <div class="calendar-events"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    // Mobile menu toggle
+    const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    
+    if (mobileMenuToggle) {
+      mobileMenuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+      });
+    }
+    
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener('click', (e) => {
+      if (window.innerWidth <= 992 && 
+          sidebar.classList.contains('active') && 
+          !sidebar.contains(e.target) && 
+          e.target !== mobileMenuToggle) {
+        sidebar.classList.remove('active');
+      }
+    });
+    
+    // Appointment actions
+    const acceptButtons = document.querySelectorAll('.appointment-actions .btn-secondary');
+    const declineButtons = document.querySelectorAll('.appointment-actions .btn-outline:last-child');
+    
+    acceptButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const appointmentCard = this.closest('.appointment-card');
+        const statusElement = appointmentCard.querySelector('.appointment-status');
+        
+        if (statusElement.classList.contains('status-awaiting')) {
+          statusElement.classList.remove('status-awaiting');
+          statusElement.classList.add('status-upcoming');
+          statusElement.textContent = 'Confirmed';
+          
+          // Update action buttons
+          const actionsDiv = this.closest('.appointment-actions');
+          actionsDiv.innerHTML = `
+            <button class="btn btn-secondary btn-sm">Start Consultation</button>
+            <button class="btn btn-outline btn-sm">View Details</button>
+          `;
+          
+          alert('Appointment confirmed successfully!');
+        }
+      });
+    });
+    
+    declineButtons.forEach(button => {
+      button.addEventListener('click', function() {
+        const appointmentCard = this.closest('.appointment-card');
+        if (confirm('Are you sure you want to decline this appointment?')) {
+          appointmentCard.remove();
+          alert('Appointment declined successfully!');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

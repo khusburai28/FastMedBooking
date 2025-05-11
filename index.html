@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FastMedBooking - Quick Medical Appointments</title>
+  <link rel="stylesheet" href="static/css/style.css">
+  <link rel="stylesheet" href="static/css/responsive.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+  <!-- Navigation -->
+  <nav class="navbar">
+    <div class="container">
+      <div class="logo">
+        <h1><i class="fas fa-heartbeat pulse"></i> FastMedBooking</h1>
+      </div>
+      <div class="nav-links" id="navLinks">
+        <i class="fas fa-times" id="closeMenu"></i>
+        <ul>
+          <li><a href="#home" class="active">Home</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#doctors">Doctors</a></li>
+          <li><a href="#about">About</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ul>
+      </div>
+      <div class="auth-buttons">
+        <button class="btn btn-secondary" id="loginBtn">Login</button>
+        <button class="btn btn-primary" id="signupBtn">Sign Up</button>
+      </div>
+      <i class="fas fa-bars" id="menuIcon"></i>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero" id="home">
+    <div class="container">
+      <div class="hero-content">
+        <h1>Book Your Doctor Appointment in <span class="highlight">Seconds</span></h1>
+        <p>No more waiting on phone calls or standing in queues. Get instant access to top doctors and book appointments with just a few clicks.</p>
+        <div class="hero-buttons">
+          <button class="btn btn-large btn-primary" id="bookNowBtn">Book Now</button>
+          <button class="btn btn-large btn-outline" id="learnMoreBtn">Learn More</button>
+        </div>
+      </div>
+      <div class="hero-image">
+        <img src="https://images.pexels.com/photos/7088530/pexels-photo-7088530.jpeg" alt="Doctor with patient" class="main-image">
+        <div class="stats-card">
+          <div class="stat">
+            <h3>500+</h3>
+            <p>Doctors</p>
+          </div>
+          <div class="stat">
+            <h3>24/7</h3>
+            <p>Support</p>
+          </div>
+          <div class="stat">
+            <h3>50k+</h3>
+            <p>Happy Patients</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Booking Widget -->
+  <section class="booking-widget">
+    <div class="container">
+      <div class="widget-card">
+        <h2>Quick Appointment</h2>
+        <form id="quickBookingForm">
+          <div class="form-group">
+            <label for="speciality">Speciality</label>
+            <select id="speciality" required>
+              <option value="" disabled selected>Select speciality</option>
+              <option value="cardiology">Cardiology</option>
+              <option value="dermatology">Dermatology</option>
+              <option value="neurology">Neurology</option>
+              <option value="orthopedics">Orthopedics</option>
+              <option value="pediatrics">Pediatrics</option>
+              <option value="psychiatry">Psychiatry</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="location">Location</label>
+            <select id="location" required>
+              <option value="" disabled selected>Select location</option>
+              <option value="delhi">Delhi</option>
+              <option value="mumbai">Mumbai</option>
+              <option value="bangalore">Bangalore</option>
+              <option value="chennai">Chennai</option>
+              <option value="kolkata">Kolkata</option>
+              <option value="hyderabad">Hyderabad</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="appointmentDate">Date</label>
+            <input type="date" id="appointmentDate" required>
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">Find Doctors</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Section -->
+  <section class="services" id="services">
+    <div class="container">
+      <div class="section-header">
+        <h2>Our Medical Services</h2>
+        <p>We provide a wide range of medical services to ensure your health is always a priority</p>
+      </div>
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-user-md"></i>
+          </div>
+          <h3>Expert Consultation</h3>
+          <p>Get expert advice from our specialists in various medical fields</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <h3>Diagnostic Services</h3>
+          <p>Comprehensive diagnostic tests with quick and accurate results</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-procedures"></i>
+          </div>
+          <h3>Emergency Care</h3>
+          <p>24/7 emergency medical services for immediate attention</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-pills"></i>
+          </div>
+          <h3>Pharmacy Services</h3>
+          <p>In-house pharmacy with all essential medications</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-notes-medical"></i>
+          </div>
+          <h3>Health Records</h3>
+          <p>Digital health records for easy access and tracking</p>
+        </div>
+        <div class="service-card">
+          <div class="service-icon">
+            <i class="fas fa-hospital-user"></i>
+          </div>
+          <h3>Preventive Care</h3>
+          <p>Regular health check-ups and preventive care packages</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Featured Doctors -->
+  <section class="doctors" id="doctors">
+    <div class="container">
+      <div class="section-header">
+        <h2>Our Featured Doctors</h2>
+        <p>Top specialists available for immediate consultation</p>
+      </div>
+      <div class="doctors-grid" id="doctorsGrid">
+        <!-- Doctor cards will be populated by JavaScript -->
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="how-it-works">
+    <div class="container">
+      <div class="section-header">
+        <h2>How FastMedBooking Works</h2>
+        <p>Simple, quick, and efficient appointment booking in just 3 steps</p>
+      </div>
+      <div class="steps">
+        <div class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>Search Doctor</h3>
+            <p>Find doctors by speciality, location, or availability</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>Book Appointment</h3>
+            <p>Select a convenient time slot and book instantly</p>
+          </div>
+        </div>
+        <div class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>Get Confirmation</h3>
+            <p>Receive instant confirmation and reminders</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials -->
+  <section class="testimonials">
+    <div class="container">
+      <div class="section-header">
+        <h2>What Our Patients Say</h2>
+        <p>Real experiences from people who trusted FastMedBooking</p>
+      </div>
+      <div class="testimonial-slider" id="testimonialSlider">
+        <!-- Testimonials will be populated by JavaScript -->
+      </div>
+      <div class="slider-controls">
+        <button id="prevTestimonial" class="slider-control"><i class="fas fa-chevron-left"></i></button>
+        <button id="nextTestimonial" class="slider-control"><i class="fas fa-chevron-right"></i></button>
+      </div>
+    </div>
+  </section>
+
+  <!-- App Download Section -->
+  <section class="app-download">
+    <div class="container">
+      <div class="app-content">
+        <h2>Download Our Mobile App</h2>
+        <p>Get faster access to doctors and manage appointments on the go with our mobile app</p>
+        <div class="app-buttons">
+          <a href="#" class="app-btn">
+            <i class="fab fa-google-play"></i>
+            <span>Google Play</span>
+          </a>
+          <a href="#" class="app-btn">
+            <i class="fab fa-apple"></i>
+            <span>App Store</span>
+          </a>
+        </div>
+      </div>
+      <div class="app-image">
+        <img src="https://images.pexels.com/photos/7578816/pexels-photo-7578816.jpeg" alt="Mobile app" class="mobile-app-image">
+      </div>
+    </div>
+  </section>
+
+  <!-- Team Section -->
+  <section class="team" id="about">
+    <div class="container">
+      <div class="section-header">
+        <h2>Meet Our Team</h2>
+        <p>The brilliant minds behind FastMedBooking</p>
+      </div>
+      <div class="team-members">
+        <div class="team-member">
+          <div class="member-image">
+            <img src="https://images.pexels.com/photos/7089629/pexels-photo-7089629.jpeg" alt="Team Member">
+          </div>
+          <h3>Khusbu Rai</h3>
+          <p class="member-position">Co-Founder & Lead Developer</p>
+          <p class="university">GURU GOBIND SINGH INDRAPRASTHA UNIVERSITY EDC</p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+        <div class="team-member">
+          <div class="member-image">
+            <img src="https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg" alt="Team Member">
+          </div>
+          <h3>Aayush Sinha</h3>
+          <p class="member-position">Co-Founder & UI/UX Designer</p>
+          <p class="university">GURU GOBIND SINGH INDRAPRASTHA UNIVERSITY EDC</p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-linkedin"></i></a>
+            <a href="#"><i class="fab fa-github"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact Section -->
+  <section class="contact" id="contact">
+    <div class="container">
+      <div class="section-header">
+        <h2>Contact Us</h2>
+        <p>We're here to help with any questions you might have</p>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="info-item">
+            <i class="fas fa-map-marker-alt"></i>
+            <div>
+              <h3>Address</h3>
+              <p>123 Medical Avenue, Delhi, India</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-phone-alt"></i>
+            <div>
+              <h3>Phone</h3>
+              <p>+91 1234567890</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-envelope"></i>
+            <div>
+              <h3>Email</h3>
+              <p>info@fastmedbooking.com</p>
+            </div>
+          </div>
+          <div class="info-item">
+            <i class="fas fa-clock"></i>
+            <div>
+              <h3>Working Hours</h3>
+              <p>Mon - Sat: 9:00 AM - 8:00 PM</p>
+            </div>
+          </div>
+        </div>
+        <div class="contact-form">
+          <form id="contactForm">
+            <div class="form-group">
+              <label for="name">Name</label>
+              <input type="text" id="name" required>
+            </div>
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" id="email" required>
+            </div>
+            <div class="form-group">
+              <label for="subject">Subject</label>
+              <input type="text" id="subject" required>
+            </div>
+            <div class="form-group">
+              <label for="message">Message</label>
+              <textarea id="message" rows="5" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="container">
+      <div class="footer-top">
+        <div class="footer-logo">
+          <h2><i class="fas fa-heartbeat"></i> FastMedBooking</h2>
+          <p>Quick and efficient doctor appointments at your fingertips</p>
+          <div class="social-links">
+            <a href="#"><i class="fab fa-facebook-f"></i></a>
+            <a href="#"><i class="fab fa-twitter"></i></a>
+            <a href="#"><i class="fab fa-instagram"></i></a>
+            <a href="#"><i class="fab fa-linkedin-in"></i></a>
+          </div>
+        </div>
+        <div class="footer-links">
+          <h3>Quick Links</h3>
+          <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#doctors">Doctors</a></li>
+            <li><a href="#about">About Us</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </div>
+        <div class="footer-links">
+          <h3>Services</h3>
+          <ul>
+            <li><a href="#">Find a Doctor</a></li>
+            <li><a href="#">Online Consultation</a></li>
+            <li><a href="#">Health Checkup</a></li>
+            <li><a href="#">Lab Tests</a></li>
+            <li><a href="#">Medical Tourism</a></li>
+          </ul>
+        </div>
+        <div class="footer-newsletter">
+          <h3>Newsletter</h3>
+          <p>Subscribe to our newsletter for health tips and updates</p>
+          <form id="newsletterForm">
+            <input type="email" placeholder="Your Email" required>
+            <button type="submit" class="btn btn-primary">Subscribe</button>
+          </form>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 FastMedBooking. Made with ❤️ by Khusbu Rai & Aayush Sinha, Guru Gobind Singh Indraprastha University EDC.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Login Modal -->
+  <div class="modal" id="loginModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeLoginModal">&times;</span>
+      <h2>Login</h2>
+      <div class="user-type-tabs">
+        <button class="tab-btn active" data-type="patient">Patient</button>
+        <button class="tab-btn" data-type="doctor">Doctor</button>
+        <button class="tab-btn" data-type="admin">Admin</button>
+      </div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email</label>
+          <input type="email" id="loginEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required>
+        </div>
+        <div class="form-group remember-me">
+          <input type="checkbox" id="rememberMe">
+          <label for="rememberMe">Remember me</label>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Login</button>
+      </form>
+      <div class="modal-footer">
+        <p>Don't have an account? <a href="#" id="switchToSignup">Sign up</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Signup Modal -->
+  <div class="modal" id="signupModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeSignupModal">&times;</span>
+      <h2>Sign Up</h2>
+      <div class="user-type-tabs">
+        <button class="tab-btn active" data-type="patient">Patient</button>
+        <button class="tab-btn" data-type="doctor">Doctor</button>
+      </div>
+      <form id="signupForm">
+        <div class="form-group">
+          <label for="signupName">Full Name</label>
+          <input type="text" id="signupName" required>
+        </div>
+        <div class="form-group">
+          <label for="signupEmail">Email</label>
+          <input type="email" id="signupEmail" required>
+        </div>
+        <div class="form-group">
+          <label for="signupPhone">Phone Number</label>
+          <input type="tel" id="signupPhone" required>
+        </div>
+        <div class="form-group">
+          <label for="signupPassword">Password</label>
+          <input type="password" id="signupPassword" required>
+        </div>
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <input type="password" id="confirmPassword" required>
+        </div>
+        <div class="form-group terms">
+          <input type="checkbox" id="agreeTerms" required>
+          <label for="agreeTerms">I agree to the <a href="#">Terms & Conditions</a></label>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
+      </form>
+      <div class="modal-footer">
+        <p>Already have an account? <a href="#" id="switchToLogin">Login</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script src="static/js/main.js"></script>
+  <script src="static/js/doctors.js"></script>
+  <script src="static/js/testimonials.js"></script>
+  <script src="static/js/modals.js"></script>
+</body>
+</html>
