@@ -36,8 +36,9 @@ Installation
 
 1) Clone the repository:git clone https://github.com/khusburai28/FastMedBooking.git
 2) cd FastMedBooking
-3) Installation: go run main.go
-4) Open your browser and visit: http://localhost:8080
+3) Download dependencies: go mod tidy
+4) Installation: go run main.go
+5) Open index.html & Backend will run at: http://localhost:8080
 
 Usage
 
