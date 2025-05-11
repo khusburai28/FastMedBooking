@@ -402,7 +402,6 @@
       <div class="user-type-tabs">
         <button class="tab-btn active" data-type="patient">Patient</button>
         <button class="tab-btn" data-type="doctor">Doctor</button>
-        <button class="tab-btn" data-type="admin">Admin</button>
       </div>
       <form id="loginForm">
         <div class="form-group">
@@ -412,11 +411,6 @@
         <div class="form-group">
           <label for="loginPassword">Password</label>
           <input type="password" id="loginPassword" required>
-        </div>
-        <div class="form-group remember-me">
-          <input type="checkbox" id="rememberMe">
-          <label for="rememberMe">Remember me</label>
-          <a href="#" class="forgot-password">Forgot Password?</a>
         </div>
         <button type="submit" class="btn btn-primary btn-full">Login</button>
       </form>
@@ -445,10 +439,6 @@
           <input type="email" id="signupEmail" required>
         </div>
         <div class="form-group">
-          <label for="signupPhone">Phone Number</label>
-          <input type="tel" id="signupPhone" required>
-        </div>
-        <div class="form-group">
           <label for="signupPassword">Password</label>
           <input type="password" id="signupPassword" required>
         </div>
@@ -462,15 +452,171 @@
         </div>
         <button type="submit" class="btn btn-primary btn-full">Create Account</button>
       </form>
-      <div class="modal-footer">
-        <p>Already have an account? <a href="#" id="switchToLogin">Login</a></p>
-      </div>
     </div>
   </div>
 
-  <script src="static/js/main.js"></script>
+   <!-- Add API Integration Script -->
+  <script>
+    // API Base URL
+    const API_BASE = 'http://localhost:8080/api';
+
+    // Auth Handling
+    let authToken = localStorage.getItem('authToken');
+
+    // Login Form Handler
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const role = document.querySelector('.user-type-tabs .active').dataset.type;
+
+      try {
+        const response = await fetch(`${API_BASE}/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password, role })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          localStorage.setItem('authToken', data.token);
+          localStorage.setItem('userRole', data.role);
+          window.location.href = `${data.role}-dashboard.html`;
+        } else {
+          alert(data.message || 'Login failed');
+        }
+      } catch (error) {
+        console.error('Login error:', error);
+        
+      }
+    });
+
+    // Signup Form Handler
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const user = {
+        name: document.getElementById('signupName').value,
+        email: document.getElementById('signupEmail').value,
+        password: document.getElementById('signupPassword').value,
+        role: document.querySelector('.user-type-tabs .active').dataset.type
+      };
+
+      if (user.password !== document.getElementById('confirmPassword').value) {
+        alert('Passwords do not match!');
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_BASE}/signup`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(user)
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          alert('Account created successfully! Please login.');
+          document.getElementById('signupModal').style.display = 'none';
+        } else {
+          alert(data.message || 'Signup failed');
+        }
+      } catch (error) {
+        console.error('Signup error:', error);
+      }
+    });
+
+    // Doctor Search Form Handler
+    document.getElementById('quickBookingForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const specialty = document.getElementById('speciality').value;
+      const location = document.getElementById('location').value;
+
+      try {
+        const response = await fetch(`${API_BASE}/doctors?specialty=${specialty}&location=${location}`);
+        const doctors = await response.json();
+        
+        const doctorsGrid = document.getElementById('doctorsGrid');
+        doctorsGrid.innerHTML = doctors.map(doctor => `
+          <div class="doctor-card">
+            <div class="doctor-avatar">
+              <img src="${doctor.photo || 'default-avatar.jpg'}" alt="${doctor.name}">
+            </div>
+            <h3>${doctor.name}</h3>
+            <p>${doctor.specialty}</p>
+            <p>${doctor.location}</p>
+            <button class="btn btn-primary" onclick="bookAppointment('${doctor._id}')">Book Now</button>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('Doctor search error:', error);
+      }
+    });
+
+    // Contact Form Handler
+    document.getElementById('contactForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = {
+        name: document.getElementById('name').value,
+        email: document.getElementById('email').value,
+        subject: document.getElementById('subject').value,
+        message: document.getElementById('message').value
+      };
+
+      try {
+        const response = await fetch(`${API_BASE}/contact`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(formData)
+        });
+
+        if (response.ok) {
+          alert('Message sent successfully!');
+          document.getElementById('contactForm').reset();
+        }
+      } catch (error) {
+        console.error('Contact form error:', error);
+      }
+    });
+
+    // Initialize Featured Doctors
+    async function loadFeaturedDoctors() {
+      try {
+        const response = await fetch(`${API_BASE}/doctors?featured=true`);
+        const doctors = await response.json();
+        // Populate doctors grid similar to search results
+      } catch (error) {
+        console.error('Error loading doctors:', error);
+      }
+    }
+    
+    // Load initial data
+    window.addEventListener('DOMContentLoaded', () => {
+      if (localStorage.getItem('authToken')) {
+        // Update auth buttons
+        document.querySelector('.auth-buttons').innerHTML = `
+          <button class="btn btn-primary" onclick="logout()">Logout</button>
+        `;
+      }
+      loadFeaturedDoctors();
+    });
+
+    // Logout Function
+    function logout() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userRole');
+      window.location.reload();
+    }
+  </script>
+
+  <!-- <script src="static/js/main.js"></script>
   <script src="static/js/doctors.js"></script>
-  <script src="static/js/testimonials.js"></script>
+  <script src="static/js/testimonials.js"></script> -->
   <script src="static/js/modals.js"></script>
 </body>
 </html>

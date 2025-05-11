@@ -121,75 +121,75 @@ function updateFormFields(userType) {
 }
 
 // Login form submission
-if (loginForm) {
-  loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+// if (loginForm) {
+//   loginForm.addEventListener('submit', (e) => {
+//     e.preventDefault();
     
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const userType = document.querySelector('.user-type-tabs .tab-btn.active').getAttribute('data-type');
+//     const email = document.getElementById('loginEmail').value;
+//     const password = document.getElementById('loginPassword').value;
+//     const userType = document.querySelector('.user-type-tabs .tab-btn.active').getAttribute('data-type');
     
-    // Simulate login and redirect to appropriate dashboard
-    simulateLogin(email, userType);
-  });
-}
+//     // Simulate login and redirect to appropriate dashboard
+//     simulateLogin(email, userType);
+//   });
+// }
 
-// Signup form submission
-if (signupForm) {
-  signupForm.addEventListener('submit', (e) => {
-    e.preventDefault();
+// // Signup form submission
+// if (signupForm) {
+//   signupForm.addEventListener('submit', (e) => {
+//     e.preventDefault();
     
-    const name = document.getElementById('signupName').value;
-    const email = document.getElementById('signupEmail').value;
-    const phone = document.getElementById('signupPhone').value;
-    const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('confirmPassword').value;
-    const userType = document.querySelector('.user-type-tabs .tab-btn.active').getAttribute('data-type');
+//     const name = document.getElementById('signupName').value;
+//     const email = document.getElementById('signupEmail').value;
+//     const phone = document.getElementById('signupPhone').value;
+//     const password = document.getElementById('signupPassword').value;
+//     const confirmPassword = document.getElementById('confirmPassword').value;
+//     const userType = document.querySelector('.user-type-tabs .tab-btn.active').getAttribute('data-type');
     
-    if (password !== confirmPassword) {
-      alert('Passwords do not match');
-      return;
-    }
+//     if (password !== confirmPassword) {
+//       alert('Passwords do not match');
+//       return;
+//     }
     
-    // Simulate registration and redirect to appropriate dashboard
-    simulateRegistration(name, email, userType);
-  });
-}
+//     // Simulate registration and redirect to appropriate dashboard
+//     simulateRegistration(name, email, userType);
+//   });
+// }
 
-// Simulate login
-function simulateLogin(email, userType) {
-  currentUser = {
-    email: email,
-    name: email.split('@')[0],
-    userType: userType
-  };
+// // Simulate login
+// function simulateLogin(email, userType) {
+//   currentUser = {
+//     email: email,
+//     name: email.split('@')[0],
+//     userType: userType
+//   };
   
-  loginModal.style.display = 'none';
+//   loginModal.style.display = 'none';
   
-  // Redirect based on user type
-  if (userType === 'doctor') {
-    window.location.href = 'pages/doctor-dashboard.html';
-  } else if (userType === 'patient') {
-    window.location.href = 'pages/patient-dashboard.html';
-  } else if (userType === 'admin') {
-    alert('Admin dashboard is under development');
-  }
-}
+//   // Redirect based on user type
+//   if (userType === 'doctor') {
+//     window.location.href = 'pages/doctor-dashboard.html';
+//   } else if (userType === 'patient') {
+//     window.location.href = 'pages/patient-dashboard.html';
+//   } else if (userType === 'admin') {
+//     alert('Admin dashboard is under development');
+//   }
+// }
 
-// Simulate registration
-function simulateRegistration(name, email, userType) {
-  currentUser = {
-    name: name,
-    email: email,
-    userType: userType
-  };
+// // Simulate registration
+// function simulateRegistration(name, email, userType) {
+//   currentUser = {
+//     name: name,
+//     email: email,
+//     userType: userType
+//   };
   
-  signupModal.style.display = 'none';
+//   signupModal.style.display = 'none';
   
-  // Redirect based on user type
-  if (userType === 'doctor') {
-    window.location.href = 'pages/doctor-dashboard.html';
-  } else if (userType === 'patient') {
-    window.location.href = 'pages/patient-dashboard.html';
-  }
-}
+//   // Redirect based on user type
+//   if (userType === 'doctor') {
+//     window.location.href = 'pages/doctor-dashboard.html';
+//   } else if (userType === 'patient') {
+//     window.location.href = 'pages/patient-dashboard.html';
+//   }
+// }
