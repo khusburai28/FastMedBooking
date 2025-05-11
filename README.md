@@ -46,3 +46,6 @@ Usage
 2) Doctors can view, accept, and manage appointments efficiently.
 
 3) Admins can monitor overall activities and ensure smooth operation
+
+
+mongodb+srv://khusburai72:vmLHbWixTkykOOrV@fastmedbooking.rwhzns3.mongodb.net/
