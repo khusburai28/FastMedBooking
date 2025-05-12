@@ -29,7 +29,7 @@ Technologies Used
 
 1) Golang – Backend logic for handling appointment scheduling.
 
-2) HTML & CSS – Simple and effective UI for the dashboard.
+2) HTML , CSS & Javascript – Simple and effective UI for the dashboard.
    
 
 Installation
