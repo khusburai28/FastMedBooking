@@ -2,455 +2,372 @@ package main
 
 import (
 	"context"
-	"encoding/json"
-	"fmt"
+	"crypto/sha256"
+	"encoding/hex"
+	"html/template"
 	"log"
 	"net/http"
-	"os"
+	"sync"
 	"time"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gorilla/handlers"
-	"github.com/gorilla/mux"
+	"os"
+	"github.com/joho/godotenv"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"golang.org/x/crypto/bcrypt"
-	"github.com/joho/godotenv"
 )
 
-var client *mongo.Client
-var jwtSecret []byte
-var mongoURI string
-
-func init() {
-	// Load .env file if it exists
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, using environment variables")
-	}
-	
-	// Get environment variables with defaults
-	jwtSecretStr := os.Getenv("JWT_SECRET")
-	if jwtSecretStr == "" {
-		jwtSecretStr = "defaultsecret" // Default secret (for development only)
-		log.Println("Warning: Using default JWT secret")
-	}
-	jwtSecret = []byte(jwtSecretStr)
-	
-	mongoURI = os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017" // Default URI
-		log.Println("Warning: Using default MongoDB URI")
-	}
-}
-
 type User struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Name      string             `json:"name" bson:"name"`
-	Email     string             `json:"email" bson:"email"`
-	Password  string             `json:"password" bson:"password"`
-	Role      string             `json:"role" bson:"role"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-}
-
-type Doctor struct {
-	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UserID     primitive.ObjectID `json:"user_id" bson:"user_id"`
-	Specialty  string             `json:"specialty" bson:"specialty"`
-	Location   string             `json:"location" bson:"location"`
-	Bio        string             `json:"bio" bson:"bio"`
-	Experience int                `json:"experience" bson:"experience"`
-	Rating     float64            `json:"rating" bson:"rating"`
+	ID       primitive.ObjectID `bson:"_id,omitempty"`
+	Username string             `bson:"username"`
+	Password string             `bson:"password"` // Stored as SHA256 hash
+	Role     string             `bson:"role"`     // "doctor" or "patient"
 }
 
 type Appointment struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	PatientID primitive.ObjectID `json:"patient_id" bson:"patient_id"`
-	DoctorID  primitive.ObjectID `json:"doctor_id" bson:"doctor_id"`
-	DateTime  time.Time          `json:"date_time" bson:"date_time"`
-	Status    string             `json:"status" bson:"status"`
-	Notes     string             `json:"notes" bson:"notes"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
+	ID          primitive.ObjectID `bson:"_id,omitempty"`
+	Doctor      string             `bson:"doctor"`
+	Date        string             `bson:"date"`
+	Time        string             `bson:"time"`
+	Description string             `bson:"description"`
+	Booked      bool               `bson:"booked"`
+	Patient     string             `bson:"patient"`
 }
 
-type MedicalRecord struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	PatientID   primitive.ObjectID `json:"patient_id" bson:"patient_id"`
-	DoctorID    primitive.ObjectID `json:"doctor_id" bson:"doctor_id"`
-	Diagnosis   string             `json:"diagnosis" bson:"diagnosis"`
-	Prescription string            `json:"prescription" bson:"prescription"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
+var (
+	mutex     sync.Mutex
+	client    *mongo.Client
+	usersColl *mongo.Collection
+	apptColl  *mongo.Collection
+)
+
+var templates = template.Must(template.ParseGlob("templates/*.html"))
+
+func getMongoURI() string {
+	// Load .env file
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("Warning: Error loading .env file:", err)
+	}
+	
+	// Get MongoDB URI from environment variable
+	mongoURI := os.Getenv("MONGODB_URI")
+	if mongoURI == "" {
+		log.Println("MONGODB_URI not found in .env, using default")
+		return "mongodb://localhost:27017"
+	}
+	
+	return mongoURI
+}
+
+type DashboardData struct {
+	Role   string
+	Doctor string
+	Slots  []Appointment
+	User   string
 }
 
 func main() {
-	// MongoDB connection
+	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	
-	clientOptions := options.Client().ApplyURI(
-		mongoURI,
-	)
-	
+	clientOptions := options.Client().ApplyURI(getMongoURI())
 	var err error
 	client, err = mongo.Connect(ctx, clientOptions)
 	if err != nil {
 		log.Fatal(err)
 	}
 	
+	// Check the connection
 	err = client.Ping(ctx, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Connected to MongoDB!")
-
-	router := mux.NewRouter()
-
-	// Auth routes
-	router.HandleFunc("/api/signup", signUp).Methods("POST")
-	router.HandleFunc("/api/login", login).Methods("POST")
-
-	// Public routes
-	router.HandleFunc("/api/doctors", getDoctors).Methods("GET")
-
-	// Protected routes
-	authRouter := router.PathPrefix("/api").Subrouter()
-	authRouter.Use(authMiddleware)
-
-	// Patient routes
-	authRouter.HandleFunc("/appointments", createAppointment).Methods("POST")
-	authRouter.HandleFunc("/appointments/patient/{id}", getPatientAppointments).Methods("GET")
-	authRouter.HandleFunc("/medical-records/{patientId}", getMedicalRecords).Methods("GET")
-
-	// Doctor routes
-	authRouter.HandleFunc("/appointments/doctor/{id}", getDoctorAppointments).Methods("GET")
-	authRouter.HandleFunc("/appointments/{id}", updateAppointment).Methods("PUT")
-
-	// CORS setup
-	cors := handlers.CORS(
-		handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowedMethods([]string{"GET", "POST", "PUT", "DELETE"}),
-		handlers.AllowedHeaders([]string{"Content-Type", "Authorization"}),
-	)
-
-	log.Println("Server started on :8080")
-	log.Fatal(http.ListenAndServe(":8080", cors(router)))
-}
-
-func getCollection(collectionName string) *mongo.Collection {
-	return client.Database("fastmedbooking").Collection(collectionName)
-}
-
-func signUp(w http.ResponseWriter, r *http.Request) {
-	var user User
-	err := json.NewDecoder(r.Body).Decode(&user)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Check if user already exists
-	usersCollection := getCollection("users")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
+	log.Println("Connected to MongoDB!")
 	
-	var existingUser User
-	err = usersCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existingUser)
-	if err == nil {
-		http.Error(w, "Email already exists", http.StatusConflict)
+	// Get database collections
+	db := client.Database("appointment_system")
+	usersColl = db.Collection("users")
+	apptColl = db.Collection("appointments")
+	
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
+	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/register", registerHandler)
+	http.HandleFunc("/login", loginHandler)
+	http.HandleFunc("/dashboard", dashboardHandler)
+	http.HandleFunc("/add-slot", addSlotHandler)
+	http.HandleFunc("/book", bookHandler)
+	http.HandleFunc("/logout", logoutHandler)
+
+	log.Println("Server running on http://localhost:8080")
+	http.ListenAndServe(":8080", nil)
+}
+
+func hashPassword(password string) string {
+	hash := sha256.Sum256([]byte(password))
+	return hex.EncodeToString(hash[:])
+}
+
+func homeHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	templates.ExecuteTemplate(w, "home.html", nil)
+}
+
+func registerHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		templates.ExecuteTemplate(w, "register.html", nil)
 		return
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	if err != nil {
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
-		return
-	}
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+		role := r.FormValue("role")
 
-	user.Password = string(hashedPassword)
-	user.CreatedAt = time.Now()
+		if username == "" || password == "" || (role != "doctor" && role != "patient") {
+			http.Error(w, "Invalid registration data", http.StatusBadRequest)
+			return
+		}
 
-	result, err := usersCollection.InsertOne(ctx, user)
-	if err != nil {
-		http.Error(w, "Error creating user", http.StatusInternalServerError)
-		return
-	}
+		// Check if user already exists
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		
+		var existingUser User
+		err := usersColl.FindOne(ctx, bson.M{"username": username}).Decode(&existingUser)
+		if err == nil {
+			http.Error(w, "Username already exists", http.StatusBadRequest)
+			return
+		}
 
-	if user.Role == "doctor" {
-		doctorsCollection := getCollection("doctors")
-		_, err = doctorsCollection.InsertOne(ctx, bson.M{
-			"user_id":    result.InsertedID,
-			"created_at": time.Now(),
-		})
+		// Create new user
+		hashedPassword := hashPassword(password)
+		newUser := User{
+			Username: username,
+			Password: hashedPassword,
+			Role:     role,
+		}
+
+		_, err = usersColl.InsertOne(ctx, newUser)
 		if err != nil {
-			http.Error(w, "Error creating doctor profile", http.StatusInternalServerError)
+			http.Error(w, "Failed to create user", http.StatusInternalServerError)
+			return
+		}
+
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+	}
+}
+
+func loginHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		templates.ExecuteTemplate(w, "login.html", nil)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		username := r.FormValue("username")
+		password := r.FormValue("password")
+		
+		if username == "" || password == "" {
+			http.Error(w, "Missing username or password", http.StatusBadRequest)
+			return
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+		
+		var user User
+		err := usersColl.FindOne(ctx, bson.M{"username": username}).Decode(&user)
+		if err != nil || user.Password != hashPassword(password) {
+			http.Error(w, "Invalid username or password", http.StatusUnauthorized)
+			return
+		}
+
+		// Create session (using cookies for simplicity)
+		http.SetCookie(w, &http.Cookie{
+			Name:    "username",
+			Value:   username,
+			Path:    "/",
+			Expires: time.Now().Add(24 * time.Hour),
+		})
+
+		http.SetCookie(w, &http.Cookie{
+			Name:    "role",
+			Value:   user.Role,
+			Path:    "/",
+			Expires: time.Now().Add(24 * time.Hour),
+		})
+
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+	}
+}
+
+func logoutHandler(w http.ResponseWriter, r *http.Request) {
+	http.SetCookie(w, &http.Cookie{
+		Name:    "username",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Now().Add(-time.Hour),
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name:    "role",
+		Value:   "",
+		Path:    "/",
+		Expires: time.Now().Add(-time.Hour),
+	})
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+}
+
+func getLoggedInUser(r *http.Request) (string, string, bool) {
+	userCookie, err := r.Cookie("username")
+	if err != nil {
+		return "", "", false
+	}
+	
+	roleCookie, err := r.Cookie("role")
+	if err != nil {
+		return "", "", false
+	}
+	
+	return userCookie.Value, roleCookie.Value, true
+}
+
+func dashboardHandler(w http.ResponseWriter, r *http.Request) {
+	username, role, loggedIn := getLoggedInUser(r)
+	if !loggedIn {
+		http.Redirect(w, r, "/login", http.StatusSeeOther)
+		return
+	}
+
+	data := DashboardData{
+		Role: role,
+		User: username,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if role == "doctor" {
+		data.Doctor = username
+		// Show all appointments created by this doctor
+		cursor, err := apptColl.Find(ctx, bson.M{"doctor": username})
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		defer cursor.Close(ctx)
+		
+		if err = cursor.All(ctx, &data.Slots); err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+	} else if role == "patient" {
+		// For patients, show only available (unbooked) appointments
+		cursor, err := apptColl.Find(ctx, bson.M{"booked": false})
+		if err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
+			return
+		}
+		defer cursor.Close(ctx)
+		
+		if err = cursor.All(ctx, &data.Slots); err != nil {
+			http.Error(w, "Database error", http.StatusInternalServerError)
 			return
 		}
 	}
 
-	json.NewEncoder(w).Encode(user)
+	templates.ExecuteTemplate(w, "dashboard.html", data)
 }
 
-func login(w http.ResponseWriter, r *http.Request) {
-	var credentials struct {
-		Email    string `json:"email"`
-		Password string `json:"password"`
-		Role     string `json:"role"`
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&credentials)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+func addSlotHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	usersCollection := getCollection("users")
+	username, role, loggedIn := getLoggedInUser(r)
+	if !loggedIn || role != "doctor" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	date := r.FormValue("date")
+	timeVal := r.FormValue("time")
+	description := r.FormValue("description")
+
+	if date == "" || timeVal == "" {
+		http.Error(w, "Missing fields", http.StatusBadRequest)
+		return
+	}
+
+	newAppointment := Appointment{
+		Doctor:      username,
+		Date:        date,
+		Time:        timeVal,
+		Description: description,
+		Booked:      false,
+		Patient:     "",
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	var user User
-	err = usersCollection.FindOne(ctx, bson.M{
-		"email": credentials.Email,
-		"role":  credentials.Role,
-	}).Decode(&user)
-
+	_, err := apptColl.InsertOne(ctx, newAppointment)
 	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Invalid credentials",
-		})
+		http.Error(w, "Failed to add appointment", http.StatusInternalServerError)
 		return
 	}
 
-	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(credentials.Password))
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusUnauthorized)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Invalid credentials",
-		})
-		return
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":   user.ID.Hex(),
-		"role": user.Role,
-		"exp":  time.Now().Add(time.Hour * 72).Unix(),
-	})
-
-	tokenString, err := token.SignedString(jwtSecret)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]string{
-			"message": "Error generating token",
-		})
-		return
-	}
-
-	json.NewEncoder(w).Encode(map[string]string{
-		"token": tokenString,
-		"role":  user.Role,
-	})
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }
 
-func authMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenString := r.Header.Get("Authorization")
-		if tokenString == "" {
-			http.Error(w, "Authorization header required", http.StatusUnauthorized)
-			return
-		}
-
-		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("unexpected signing method")
-			}
-			return jwtSecret, nil
-		})
-
-		if err != nil || !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-			return
-		}
-
-		claims := token.Claims.(jwt.MapClaims)
-		r = r.WithContext(context.WithValue(r.Context(), "user", claims))
-		next.ServeHTTP(w, r)
-	})
-}
-
-func createAppointment(w http.ResponseWriter, r *http.Request) {
-	var appointment Appointment
-	err := json.NewDecoder(r.Body).Decode(&appointment)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+func bookHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
 	}
 
-	appointment.ID = primitive.NewObjectID()
-	appointment.CreatedAt = time.Now()
-	appointment.Status = "pending"
-
-	appointmentsCollection := getCollection("appointments")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	_, err = appointmentsCollection.InsertOne(ctx, appointment)
-	if err != nil {
-		http.Error(w, "Error creating appointment", http.StatusInternalServerError)
+	username, role, loggedIn := getLoggedInUser(r)
+	if !loggedIn || role != "patient" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 		return
 	}
 
-	json.NewEncoder(w).Encode(appointment)
-}
-
-func getPatientAppointments(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	patientID, err := primitive.ObjectIDFromHex(params["id"])
-	if err != nil {
-		http.Error(w, "Invalid patient ID", http.StatusBadRequest)
+	apptIDStr := r.FormValue("id")
+	if apptIDStr == "" {
+		http.Error(w, "Missing appointment ID", http.StatusBadRequest)
 		return
 	}
 
-	appointmentsCollection := getCollection("appointments")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	cursor, err := appointmentsCollection.Find(ctx, bson.M{"patient_id": patientID})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer cursor.Close(ctx)
-
-	var appointments []Appointment
-	if err = cursor.All(ctx, &appointments); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(appointments)
-}
-
-func updateAppointment(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	appointmentID, err := primitive.ObjectIDFromHex(params["id"])
+	apptID, err := primitive.ObjectIDFromHex(apptIDStr)
 	if err != nil {
 		http.Error(w, "Invalid appointment ID", http.StatusBadRequest)
 		return
 	}
 
-	var update struct {
-		Status string `json:"status"`
-	}
-	err = json.NewDecoder(r.Body).Decode(&update)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	appointmentsCollection := getCollection("appointments")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err = appointmentsCollection.UpdateOne(
+	// Find and update the appointment
+	result, err := apptColl.UpdateOne(
 		ctx,
-		bson.M{"_id": appointmentID},
-		bson.M{"$set": bson.M{"status": update.Status}},
+		bson.M{"_id": apptID, "booked": false},
+		bson.M{"$set": bson.M{"booked": true, "patient": username}},
 	)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Database error", http.StatusInternalServerError)
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-}
-
-func getDoctors(w http.ResponseWriter, r *http.Request) {
-	specialty := r.URL.Query().Get("specialty")
-	location := r.URL.Query().Get("location")
-
-	filter := bson.M{}
-	if specialty != "" {
-		filter["specialty"] = specialty
-	}
-	if location != "" {
-		filter["location"] = location
-	}
-
-	doctorsCollection := getCollection("doctors")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	cursor, err := doctorsCollection.Find(ctx, filter)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer cursor.Close(ctx)
-
-	var doctors []Doctor
-	if err = cursor.All(ctx, &doctors); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if result.ModifiedCount == 0 {
+		http.Error(w, "Appointment already booked or not found", http.StatusBadRequest)
 		return
 	}
 
-	json.NewEncoder(w).Encode(doctors)
-}
-
-func getMedicalRecords(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	patientID, err := primitive.ObjectIDFromHex(params["patientId"])
-	if err != nil {
-		http.Error(w, "Invalid patient ID", http.StatusBadRequest)
-		return
-	}
-
-	medicalRecordsCollection := getCollection("medical_records")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	cursor, err := medicalRecordsCollection.Find(ctx, bson.M{"patient_id": patientID})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer cursor.Close(ctx)
-
-	var records []MedicalRecord
-	if err = cursor.All(ctx, &records); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(records)
-}
-
-func getDoctorAppointments(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	doctorID, err := primitive.ObjectIDFromHex(params["id"])
-	if err != nil {
-		http.Error(w, "Invalid doctor ID", http.StatusBadRequest)
-		return
-	}
-
-	appointmentsCollection := getCollection("appointments")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	cursor, err := appointmentsCollection.Find(ctx, bson.M{"doctor_id": doctorID})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	defer cursor.Close(ctx)
-
-	var appointments []Appointment
-	if err = cursor.All(ctx, &appointments); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	json.NewEncoder(w).Encode(appointments)
+	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
 }

@@ -18,16 +18,17 @@
       <div class="nav-links" id="navLinks">
         <i class="fas fa-times" id="closeMenu"></i>
         <ul>
-          <li><a href="#home" class="active">Home</a></li>
-          <li><a href="#services">Services</a></li>
-          <li><a href="#doctors">Doctors</a></li>
-          <li><a href="#about">About</a></li>
-          <li><a href="#contact">Contact</a></li>
+          <li><a href="/#home" class="active">Home</a></li>
+          <li><a href="/#services">Services</a></li>
+          <li><a href="/dashboard?role=doctor">Doctors</a></li>
+          <li><a href="/dashboard?role=patient">Patient</a></li>
+          <li><a href="/#about">About</a></li>
+          <li><a href="/#contact">Contact</a></li>
         </ul>
       </div>
       <div class="auth-buttons">
-        <button class="btn btn-secondary" id="loginBtn">Login</button>
-        <button class="btn btn-primary" id="signupBtn">Sign Up</button>
+        <a href="/login" class="btn btn-secondary" id="loginBtn">Login</a>
+        <a href="/register" class="btn btn-primary" id="signupBtn">Sign Up</a>
       </div>
       <i class="fas fa-bars" id="menuIcon"></i>
     </div>
@@ -40,8 +41,8 @@
         <h1>Book Your Doctor Appointment in <span class="highlight">Seconds</span></h1>
         <p>No more waiting on phone calls or standing in queues. Get instant access to top doctors and book appointments with just a few clicks.</p>
         <div class="hero-buttons">
-          <button class="btn btn-large btn-primary" id="bookNowBtn">Book Now</button>
-          <button class="btn btn-large btn-outline" id="learnMoreBtn">Learn More</button>
+          <a href="/dashboard" class="btn btn-large btn-primary" id="bookNowBtn">Book Now</a>
+          <button class="btn btn-large btn-secondary" id="learnMoreBtn">Learn More</button>
         </div>
       </div>
       <div class="hero-image">
@@ -60,46 +61,6 @@
             <p>Happy Patients</p>
           </div>
         </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Quick Booking Widget -->
-  <section class="booking-widget">
-    <div class="container">
-      <div class="widget-card">
-        <h2>Quick Appointment</h2>
-        <form id="quickBookingForm">
-          <div class="form-group">
-            <label for="speciality">Speciality</label>
-            <select id="speciality" required>
-              <option value="" disabled selected>Select speciality</option>
-              <option value="cardiology">Cardiology</option>
-              <option value="dermatology">Dermatology</option>
-              <option value="neurology">Neurology</option>
-              <option value="orthopedics">Orthopedics</option>
-              <option value="pediatrics">Pediatrics</option>
-              <option value="psychiatry">Psychiatry</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="location">Location</label>
-            <select id="location" required>
-              <option value="" disabled selected>Select location</option>
-              <option value="delhi">Delhi</option>
-              <option value="mumbai">Mumbai</option>
-              <option value="bangalore">Bangalore</option>
-              <option value="chennai">Chennai</option>
-              <option value="kolkata">Kolkata</option>
-              <option value="hyderabad">Hyderabad</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="appointmentDate">Date</label>
-            <input type="date" id="appointmentDate" required>
-          </div>
-          <button type="submit" class="btn btn-primary btn-full">Find Doctors</button>
-        </form>
       </div>
     </div>
   </section>
@@ -254,7 +215,7 @@
       <div class="team-members">
         <div class="team-member">
           <div class="member-image">
-            <img src="https://images.pexels.com/photos/7089629/pexels-photo-7089629.jpeg" alt="Team Member">
+            <img src="/static/images/khusbu.jpeg" alt="Team Member">
           </div>
           <h3>Khusbu Rai</h3>
           <p class="member-position">Co-Founder & Lead Developer</p>
@@ -267,7 +228,7 @@
         </div>
         <div class="team-member">
           <div class="member-image">
-            <img src="https://images.pexels.com/photos/8460157/pexels-photo-8460157.jpeg" alt="Team Member">
+            <img src="/static/images/sam.jpeg" alt="Team Member">
           </div>
           <h3>Aayush Sinha</h3>
           <p class="member-position">Co-Founder & UI/UX Designer</p>
@@ -394,229 +355,7 @@
     </div>
   </footer>
 
-  <!-- Login Modal -->
-  <div class="modal" id="loginModal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeLoginModal">&times;</span>
-      <h2>Login</h2>
-      <div class="user-type-tabs">
-        <button class="tab-btn active" data-type="patient">Patient</button>
-        <button class="tab-btn" data-type="doctor">Doctor</button>
-      </div>
-      <form id="loginForm">
-        <div class="form-group">
-          <label for="loginEmail">Email</label>
-          <input type="email" id="loginEmail" required>
-        </div>
-        <div class="form-group">
-          <label for="loginPassword">Password</label>
-          <input type="password" id="loginPassword" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Login</button>
-      </form>
-      <div class="modal-footer">
-        <p>Don't have an account? <a href="#" id="switchToSignup">Sign up</a></p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Signup Modal -->
-  <div class="modal" id="signupModal">
-    <div class="modal-content">
-      <span class="close-modal" id="closeSignupModal">&times;</span>
-      <h2>Sign Up</h2>
-      <div class="user-type-tabs">
-        <button class="tab-btn active" data-type="patient">Patient</button>
-        <button class="tab-btn" data-type="doctor">Doctor</button>
-      </div>
-      <form id="signupForm">
-        <div class="form-group">
-          <label for="signupName">Full Name</label>
-          <input type="text" id="signupName" required>
-        </div>
-        <div class="form-group">
-          <label for="signupEmail">Email</label>
-          <input type="email" id="signupEmail" required>
-        </div>
-        <div class="form-group">
-          <label for="signupPassword">Password</label>
-          <input type="password" id="signupPassword" required>
-        </div>
-        <div class="form-group">
-          <label for="confirmPassword">Confirm Password</label>
-          <input type="password" id="confirmPassword" required>
-        </div>
-        <div class="form-group terms">
-          <input type="checkbox" id="agreeTerms" required>
-          <label for="agreeTerms">I agree to the <a href="#">Terms & Conditions</a></label>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Create Account</button>
-      </form>
-    </div>
-  </div>
-
-   <!-- Add API Integration Script -->
-  <script>
-    // API Base URL
-    const API_BASE = 'http://localhost:8080/api';
-
-    // Auth Handling
-    let authToken = localStorage.getItem('authToken');
-
-    // Login Form Handler
-    document.getElementById('loginForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      const role = document.querySelector('.user-type-tabs .active').dataset.type;
-
-      try {
-        const response = await fetch(`${API_BASE}/login`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, role })
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-          localStorage.setItem('authToken', data.token);
-          localStorage.setItem('userRole', data.role);
-          window.location.href = `${data.role}-dashboard.html`;
-        } else {
-          alert(data.message || 'Login failed');
-        }
-      } catch (error) {
-        console.error('Login error:', error);
-        
-      }
-    });
-
-    // Signup Form Handler
-    document.getElementById('signupForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const user = {
-        name: document.getElementById('signupName').value,
-        email: document.getElementById('signupEmail').value,
-        password: document.getElementById('signupPassword').value,
-        role: document.querySelector('.user-type-tabs .active').dataset.type
-      };
-
-      if (user.password !== document.getElementById('confirmPassword').value) {
-        alert('Passwords do not match!');
-        return;
-      }
-
-      try {
-        const response = await fetch(`${API_BASE}/signup`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(user)
-        });
-
-        const data = await response.json();
-        
-        if (response.ok) {
-          alert('Account created successfully! Please login.');
-          document.getElementById('signupModal').style.display = 'none';
-        } else {
-          alert(data.message || 'Signup failed');
-        }
-      } catch (error) {
-        console.error('Signup error:', error);
-      }
-    });
-
-    // Doctor Search Form Handler
-    document.getElementById('quickBookingForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const specialty = document.getElementById('speciality').value;
-      const location = document.getElementById('location').value;
-
-      try {
-        const response = await fetch(`${API_BASE}/doctors?specialty=${specialty}&location=${location}`);
-        const doctors = await response.json();
-        
-        const doctorsGrid = document.getElementById('doctorsGrid');
-        doctorsGrid.innerHTML = doctors.map(doctor => `
-          <div class="doctor-card">
-            <div class="doctor-avatar">
-              <img src="${doctor.photo || 'default-avatar.jpg'}" alt="${doctor.name}">
-            </div>
-            <h3>${doctor.name}</h3>
-            <p>${doctor.specialty}</p>
-            <p>${doctor.location}</p>
-            <button class="btn btn-primary" onclick="bookAppointment('${doctor._id}')">Book Now</button>
-          </div>
-        `).join('');
-      } catch (error) {
-        console.error('Doctor search error:', error);
-      }
-    });
-
-    // Contact Form Handler
-    document.getElementById('contactForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const formData = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        subject: document.getElementById('subject').value,
-        message: document.getElementById('message').value
-      };
-
-      try {
-        const response = await fetch(`${API_BASE}/contact`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
-        });
-
-        if (response.ok) {
-          alert('Message sent successfully!');
-          document.getElementById('contactForm').reset();
-        }
-      } catch (error) {
-        console.error('Contact form error:', error);
-      }
-    });
-
-    // Initialize Featured Doctors
-    async function loadFeaturedDoctors() {
-      try {
-        const response = await fetch(`${API_BASE}/doctors?featured=true`);
-        const doctors = await response.json();
-        // Populate doctors grid similar to search results
-      } catch (error) {
-        console.error('Error loading doctors:', error);
-      }
-    }
-    
-    // Load initial data
-    window.addEventListener('DOMContentLoaded', () => {
-      if (localStorage.getItem('authToken')) {
-        // Update auth buttons
-        document.querySelector('.auth-buttons').innerHTML = `
-          <button class="btn btn-primary" onclick="logout()">Logout</button>
-        `;
-      }
-      loadFeaturedDoctors();
-    });
-
-    // Logout Function
-    function logout() {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('userRole');
-      window.location.reload();
-    }
-  </script>
-
-  <!-- <script src="static/js/main.js"></script>
-  <script src="static/js/doctors.js"></script>
-  <script src="static/js/testimonials.js"></script> -->
+  <script src="static/js/main.js"></script>
   <script src="static/js/modals.js"></script>
 </body>
 </html>
