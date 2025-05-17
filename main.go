@@ -12,6 +12,7 @@ import (
 	"os"
 	"bytes"
 	"encoding/json"
+	"strings"
 	"io"
 	"fmt"
 	"github.com/joho/godotenv"
@@ -81,6 +82,18 @@ type DiseasePredictionRequest struct {
 	Gender        string `json:"gender"`
 	Symptoms      string `json:"symptoms"`
 	MedicalHistory string `json:"medical_history"`
+}
+
+type Medicine struct {
+  Name    string `json:"name"`
+  Dosage  string `json:"dosage"`
+  Disease string `json:"disease"`
+}
+
+type PageData struct {
+  User    string
+  Role    string
+  Results []Medicine
 }
 
 type GeminiResponse struct {
@@ -205,6 +218,7 @@ func main() {
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", homeHandler)
 	http.HandleFunc("/book_ambulance", bookAmbulanceHandler)
+	http.HandleFunc("/buy_medicine", buyMedicineHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
@@ -233,6 +247,73 @@ func bookAmbulanceHandler(w http.ResponseWriter, r *http.Request) {
 		// Handle ambulance booking logic here
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 	}
+}
+
+func buyMedicineHandler(w http.ResponseWriter, r *http.Request) {
+  switch r.Method {
+  case http.MethodGet:
+    templates.ExecuteTemplate(w, "buy_medicine.html", nil)
+    return
+
+  case http.MethodPost:
+    // 1) Read uploaded file
+    file, _, err := r.FormFile("prescription")
+    if err != nil {
+      http.Error(w, "Failed to read file: "+err.Error(), http.StatusBadRequest)
+      return
+    }
+    defer file.Close()
+
+    // 2) OCR step (stubbed here—replace with real OCR)
+    presBytes, _ := io.ReadAll(file)
+    presText := string(presBytes) // or pass bytes to OCR lib
+
+    // 3) Build prompt for Gemini
+	prompt := `
+	Extract from the following prescription text a JSON array of objects.
+	Each object should have exactly the fields "name", "dosage", and "disease".
+	Respond with *only* the JSON array—no backticks, no markdown, no commentary.
+
+	Prescription Text:
+	` + presText
+
+    // 4) Call Gemini
+    response, err := askGemini(prompt)
+    if err != nil {
+      http.Error(w, "GPT error: "+err.Error(), http.StatusInternalServerError)
+      return
+    }
+
+	clean := strings.TrimSpace(response)
+
+	if strings.HasPrefix(clean, "```json") {
+		clean = strings.TrimPrefix(clean, "```json")
+	} else if strings.HasPrefix(clean, "```") {
+		clean = strings.TrimPrefix(clean, "```")
+	}
+
+	clean = strings.Trim(clean, "`")
+	clean = strings.TrimSpace(clean)
+
+    // 5) Parse JSON into Go structs
+    var meds []Medicine
+    if err := json.Unmarshal([]byte(clean), &meds); err != nil {
+      http.Error(w, "Failed to parse GPT JSON: "+err.Error(), http.StatusInternalServerError)
+      return
+    }
+
+    // 6) Render template with results
+    data := PageData{
+      User:    "",        
+      Role:    "",        
+      Results: meds,
+    }
+    templates.ExecuteTemplate(w, "buy_medicine.html", data)
+    return
+
+  default:
+    http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+  }
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
