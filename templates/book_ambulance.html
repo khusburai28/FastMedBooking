@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/responsive.css">
   <link rel="stylesheet" href="/static/css/chat.css">
+  <link rel="stylesheet" href="/static/css/ambulance.css">
   <script src="/static/js/chat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -42,53 +43,83 @@
     </div>
   </nav>
 
-    <!-- Main Content -->
-    <section class="hero">
-          <div class="container">
-                <h2>Book Ambulance</h2>
-                <p>Find and book an ambulance near you in Delhi.</p>
-
-                <!-- Map Container -->
-                <div id="map" style="height: 400px; width: 100%;">
-                     <!-- Map will be loaded here -->
-                </div>
-
-                <button class="btn btn-primary">Book Ambulance Now</button>
+  <main class="ambulance-main">
+    <section class="hero ambulance-hero">
+      <div class="container">
+        <div class="hero-content">
+          <h1 class="hero-title">Emergency Ambulance Service</h1>
+          <p class="hero-subtitle">Immediate medical assistance in Delhi NCR</p>
+          
+          <div class="ambulance-alert">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>Average Response Time: 8-12 minutes</span>
           </div>
-     </section>
 
-     <script>
-          function initMap() {
-                // The location of Delhi
-                const delhi = { lat: 28.7041, lng: 77.1025 };
-                // The map, centered at Delhi
-                const map = new google.maps.Map(document.getElementById("map"), {
-                     zoom: 12,
-                     center: delhi,
-                });
-                // Dummy ambulance locations (replace with real-time data)
-                const ambulanceLocations = [
-                     { lat: 28.6448, lng: 77.2167, name: "Ambulance 1" },
-                     { lat: 28.5276, lng: 77.0691, name: "Ambulance 2" },
-                     { lat: 28.7355, lng: 77.1212, name: "Ambulance 3" }
-                ];
+          <div id="map"></div>
 
-                // Add markers for each ambulance
-                ambulanceLocations.forEach(location => {
-                     new google.maps.Marker({
-                          position: { lat: location.lat, lng: location.lng },
-                          map: map,
-                          title: location.name
-                     });
-                });
-          }
+          <div class="ambulance-features">
+            <div class="feature-card">
+              <i class="fas fa-user-nurse"></i>
+              <h3>Trained Paramedics</h3>
+              <p>Advanced life support equipped professionals</p>
+            </div>
+            <div class="feature-card">
+              <i class="fas fa-heartbeat"></i> <h3>24/7 Availability</h3>
+              <p>Round-the-clock emergency services</p>
+            </div>
+            </div>
 
-          // Initialize the map
-          window.onload = initMap;
-     </script>
-     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+          <button class="btn btn-ambulance">
+            <i class="fas fa-ambulance btn-icon"></i> <span class="btn-text">Request Emergency Ambulance</span>
+            <div class="loading-animation"></div>
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
 
-    <!-- Footer -->
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <script>
+    function initMap() {
+      // Delhi coordinates
+      const delhi = [28.7041, 77.1025];
+      
+      // Initialize the map
+      const map = L.map('map').setView(delhi, 12);
+
+      // Add OpenStreetMap tiles
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+      }).addTo(map);
+
+      // Ambulance locations
+      const ambulanceLocations = [
+        { lat: 28.6448, lng: 77.2167, name: "Ambulance 1 (Central)" },
+        { lat: 28.5276, lng: 77.0691, name: "Ambulance 2 (South West)" },
+        { lat: 28.7355, lng: 77.1212, name: "Ambulance 3 (North)" }
+      ];
+
+      // Custom Ambulance Icon (Optional)
+      const ambulanceIcon = L.icon({
+          iconUrl: '/static/images/ambulance-icon-map.png', // Provide a path to an ambulance icon image
+          iconSize: [38, 38], // size of the icon
+          iconAnchor: [19, 38], // point of the icon which will correspond to marker's location
+          popupAnchor: [0, -38] // point from which the popup should open relative to the iconAnchor
+      });
+
+      // Add markers
+      ambulanceLocations.forEach(location => {
+        L.marker([location.lat, location.lng], { icon: ambulanceIcon }) // Use custom icon if you have one
+          .addTo(map)
+          .bindPopup(location.name);
+      });
+    }
+
+    // Initialize the map
+    window.onload = initMap;
+  </script>
+
+  <!-- Footer -->
   <footer>
     <div class="container">
       <div class="footer-top">
