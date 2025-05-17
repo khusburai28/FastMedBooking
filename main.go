@@ -11,8 +11,9 @@ import (
 	"time"
 	"os"
 	"bytes"
-	"encoding/base64"
 	"encoding/json"
+	"mime/multipart"
+	"encoding/base64"
 	"strings"
 	"io"
 	"fmt"
@@ -107,30 +108,74 @@ type GeminiResponse struct {
 	} `json:"candidates"`
 }
 
-func askGemini(prompt string) (string, error) {
+func askGemini(prompt string, file ...multipart.File) (string, error) {
 	apiKey := os.Getenv("GEMINI_API_KEY")
 	url := os.Getenv("GEMINI_API_URL") + "?key=" + apiKey
 
-	requestBody := map[string]interface{}{
-		"contents": []interface{}{
-			map[string]interface{}{
-				"parts": []interface{}{
-					map[string]string{"text": prompt},
+	var requestBody map[string]interface{}
+
+	if len(file) > 0 && file[0] != nil {
+		uploadedFile := file[0]
+		defer uploadedFile.Close()
+
+		fileData, err := io.ReadAll(uploadedFile)
+		if err != nil {
+			return "", fmt.Errorf("error reading uploaded file: %w", err)
+		}
+
+		// Determine the MIME type (you might need a more robust way)
+		contentType := http.DetectContentType(fileData)
+
+		requestBody = map[string]interface{}{
+			"contents": []interface{}{
+				map[string]interface{}{
+					"parts": []interface{}{
+						map[string]interface{}{
+							"text": prompt,
+						},
+						map[string]interface{}{
+							"inline_data": map[string]interface{}{
+								"mime_type": contentType,
+								"data":      base64.StdEncoding.EncodeToString(fileData),
+							},
+						},
+					},
 				},
 			},
-		},
+		}
+	} else {
+		requestBody = map[string]interface{}{
+			"contents": []interface{}{
+				map[string]interface{}{
+					"parts": []interface{}{
+						map[string]string{"text": prompt},
+					},
+				},
+			},
+		}
 	}
 
-	jsonBody, _ := json.Marshal(requestBody)
+	jsonBody, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("error marshaling request body: %w", err)
+	}
+
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return "", err
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error reading response body: %w", err)
+	}
+
 	var geminiResp GeminiResponse
-	json.Unmarshal(body, &geminiResp)
+	err = json.Unmarshal(body, &geminiResp)
+	if err != nil {
+		return "", fmt.Errorf("error unmarshaling response body: %w", err)
+	}
 
 	if len(geminiResp.Candidates) == 0 {
 		return "No response from AI", nil
@@ -265,27 +310,15 @@ func buyMedicineHandler(w http.ResponseWriter, r *http.Request) {
     }
     defer file.Close()
 
-	// 2) Convert the uploaded file to bytes
-	fileBytes, err := io.ReadAll(file)
-	if err != nil {
-	  http.Error(w, "Failed to read file: "+err.Error(), http.StatusBadRequest)
-	  return
-	}
-
-	// Convert the byte slice to a base64 string
-	base64String := fmt.Sprintf("data:application/octet-stream;base64,%s", base64.StdEncoding.EncodeToString(fileBytes))
-
 	// 3) Build prompt for Gemini
 	prompt := `
 	Analyze the provided prescription file and extract a JSON array of objects.
 	Each object should have exactly the fields "name", "dosage", and "disease".
-	Respond with *only* the JSON array—no backticks, no markdown, no commentary.
-
-	Prescription File (base64 encoded):
-	` + base64String
+	Respond with *only* the JSON array—no backticks, no markdown, no commentary. And Based on the Medicine name, give the "disease" name (in 1-2 words) and also recommend the "dosage" field (if not specified, in 1-2 words).
+	`
 
     // 4) Call Gemini
-    response, err := askGemini(prompt)
+    response, err := askGemini(prompt, file)
     if err != nil {
       http.Error(w, "GPT error: "+err.Error(), http.StatusInternalServerError)
       return
