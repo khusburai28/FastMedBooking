@@ -90,6 +90,7 @@ type Medicine struct {
   Name    string `json:"name"`
   Dosage  string `json:"dosage"`
   Disease string `json:"disease"`
+  Usage   string `json:"usage"`
 }
 
 type PageData struct {
@@ -313,8 +314,9 @@ func buyMedicineHandler(w http.ResponseWriter, r *http.Request) {
 	// 3) Build prompt for Gemini
 	prompt := `
 	Analyze the provided prescription file and extract a JSON array of objects.
-	Each object should have exactly the fields "name", "dosage", and "disease".
+	Each object should have exactly the fields "name", "dosage", "disease" and "usage".
 	Respond with *only* the JSON array—no backticks, no markdown, no commentary. And Based on the Medicine name, give the "disease" name (in 1-2 words) and also recommend the "dosage" field (if not specified, in 1-2 words).
+	Recommend the "usage" field (if not specified, in 1-2 words). "usage" field should have the format "Take 1 pill every 8 hours", "Before meal", "After meal", etc.
 	`
 
     // 4) Call Gemini

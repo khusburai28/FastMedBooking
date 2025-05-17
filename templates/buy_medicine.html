@@ -76,6 +76,7 @@
               <th>Medicine Name</th>
               <th>Dosage</th>
               <th>Indication (Used for Treating Which Disease)</th>
+              <td>Usage</td>
               <th>Buy Link</th>
             </tr>
           </thead>
@@ -86,6 +87,7 @@
               <td>{{$med.Name}}</td>
               <td>{{$med.Dosage}}</td>
               <td>{{$med.Disease}}</td>
+              <td>{{$med.Usage}}</td>
               <td>
                 <a href="https://pharmeasy.in/search/all?name={{$med.Name}}" target="_blank" class="buy-button">
                   <button class="buy-button">
