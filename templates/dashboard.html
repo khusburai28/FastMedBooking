@@ -7,6 +7,8 @@
   <title>FastMedBooking - Dashboard</title>
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/responsive.css">
+  <link rel="stylesheet" href="/static/css/chat.css">
+  <script src="/static/js/chat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -35,99 +37,163 @@
     </div>
   </nav>
 
-  <section class="dashboard-section" style="padding-top: 180px;">
+  <section class="dashboard-section py-5" style="padding-top: 180px;">
     <div class="container">
-      <h2>Welcome, {{.User}}!</h2>
+      <h2 class="mb-4">Welcome, {{.User}}!</h2>
 
       {{if eq .Role "doctor"}}
-      <div class="slot-form">
-        <h3>Add New Appointment Slot</h3>
-        <form action="/add-slot" method="post">
-          <div class="form-group">
-            <label for="date">Date</label>
-            <input type="date" id="date" name="date" required>
-          </div>
-          <div class="form-group">
-            <label for="time">Time</label>
-            <input type="time" id="time" name="time" required>
-          </div>
-          <div class="form-group">
-            <label for="description">Description</label>
-            <textarea id="description" name="description" placeholder="Details (optional)"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Add Slot</button>
-        </form>
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Add New Appointment Slot</h6>
+        </div>
+        <div class="card-body">
+          <form action="/add-slot" method="post">
+            <div class="mb-3">
+              <label for="date" class="form-label">Date</label>
+              <input type="date" id="date" name="date" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="time" class="form-label">Time</label>
+              <input type="time" id="time" name="time" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="description" class="form-label">Description</label>
+              <textarea id="description" name="description" class="form-control" placeholder="Details (optional)"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Slot</button>
+          </form>
+        </div>
       </div>
 
-      <div class="slots-list">
-        <h3>Your Appointment Slots</h3>
-        {{if .Slots}}
-        <table class="slot-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Description</th>
-              <th>Status</th>
-              <th>Patient</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range .Slots}}
-            <tr>
-              <td>{{.Date}}</td>
-              <td>{{.Time}}</td>
-              <td>{{.Description}}</td>
-              <td>{{if .Booked}}Booked{{else}}Available{{end}}</td>
-              <td>{{if .Booked}}{{.Patient}}{{else}}—{{end}}</td>
-            </tr>
-            {{end}}
-          </tbody>
-        </table>
-        {{else}}
-        <p>No slots available. Add one above.</p>
-        {{end}}
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Your Appointment Slots</h6>
+        </div>
+        <div class="card-body">
+          {{if .Slots}}
+            <div class="table-responsive">
+            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+              <tr class="bg-primary text-white">
+                <th>Date</th>
+                <th>Time</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Patient</th>
+              </tr>
+              </thead>
+              <tbody>
+              {{range .Slots}}
+              <tr>
+                <td>{{.Date}}</td>
+                <td>{{.Time}}</td>
+                <td>{{.Description}}</td>
+                <td>{{if .Booked}}<span class="badge bg-danger text-white">Booked</span>{{else}}<span class="badge bg-success text-white">Available</span>{{end}}</td>
+                <td>{{if .Booked}}{{.Patient}}{{else}}—{{end}}</td>
+              </tr>
+              {{end}}
+              </tbody>
+            </table>
+            </div>
+          {{else}}
+          <p>No slots available. Add one above.</p>
+          {{end}}
+        </div>
       </div>
       {{else if eq .Role "patient"}}
-      <div class="slots-list">
-        <h3>Available Appointment Slots</h3>
-        {{if .Slots}}
-        <table class="slot-table">
-          <thead>
-            <tr>
-              <th>Doctor</th>
-              <th>Date</th>
-              <th>Time</th>
-              <th>Description</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {{range .Slots}}
-            <tr>
-              <td>{{.Doctor}}</td>
-              <td>{{.Date}}</td>
-              <td>{{.Time}}</td>
-              <td>{{.Description}}</td>
-              <td>
-                <form action="/book" method="post">
-                  <input type="hidden" name="id" value="{{.ID.Hex}}">
-                  <button type="submit" class="btn btn-primary btn-sm">Book</button>
-                </form>
-              </td>
-            </tr>
-            {{end}}
-          </tbody>
-        </table>
-        {{else}}
-        <p>No available slots at the moment. Please check back later.</p>
-        {{end}}
+      <div class="card shadow mb-4">
+        <div class="card-header py-3">
+          <h6 class="m-0 font-weight-bold text-primary">Available Appointment Slots</h6>
+        </div>
+        <div class="card-body">
+          {{if .Slots}}
+          <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+              <thead>
+                <tr>
+                  <th>Doctor</th>
+                  <th>Date</th>
+                  <th>Time</th>
+                  <th>Description</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {{range .Slots}}
+                <tr>
+                  <td>{{.Doctor}}</td>
+                  <td>{{.Date}}</td>
+                  <td>{{.Time}}</td>
+                  <td>{{.Description}}</td>
+                  <td>
+                    <form action="/book" method="post">
+                      <input type="hidden" name="id" value="{{.ID.Hex}}">
+                      <button type="submit" class="btn btn-primary btn-sm">Book</button>
+                    </form>
+                  </td>
+                </tr>
+                {{end}}
+              </tbody>
+            </table>
+          </div>
+          {{else}}
+          <p>No available slots at the moment. Please check back later.</p>
+          {{end}}
+        </div>
       </div>
       {{end}}
     </div>
   </section>
 
-  <!-- Footer -->
+  <!-- Add this just before the footer section -->
+<div class="chat-container">
+  <button class="chat-toggle btn btn-primary">
+    <i class="fas fa-comment-medical"></i>
+  </button>
+  <div class="chat-modal">
+    <div class="chat-header">
+      <h4>MedAI Assistant</h4>
+      <div class="chat-modes">
+        <button class="mode-btn active" data-mode="general">General Health</button>
+        <button class="mode-btn" data-mode="disease">Disease Prediction</button>
+      </div>
+      <button class="close-chat">&times;</button>
+    </div>
+    <div class="chat-content">
+      <div class="chat-messages"></div>
+      <div class="disease-form" style="display: none;">
+        <form id="diseaseForm">
+          <div class="mb-3">
+            <label>Age</label>
+            <input type="number" name="age" required>
+          </div>
+          <div class="mb-3">
+            <label>Gender</label>
+            <select name="gender" required>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label>Symptoms</label>
+            <textarea name="symptoms" rows="3" required></textarea>
+          </div>
+          <div class="mb-3">
+            <label>Medical History</label>
+            <textarea name="medical_history" rows="2"></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary">Analyze</button>
+        </form>
+      </div>
+      <div class="chat-input">
+        <input type="text" placeholder="Type your health query...">
+        <button class="send-btn btn btn-primary">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
   <!-- Footer -->
   <footer>
     <div class="container">

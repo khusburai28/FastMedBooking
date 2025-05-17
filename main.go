@@ -10,6 +10,10 @@ import (
 	"sync"
 	"time"
 	"os"
+	"bytes"
+	"encoding/json"
+	"io"
+	"fmt"
 	"github.com/joho/godotenv"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -68,6 +72,113 @@ type DashboardData struct {
 	User   string
 }
 
+type ChatRequest struct {
+	Message string `json:"message"`
+}
+
+type DiseasePredictionRequest struct {
+	Age           string `json:"age"`
+	Gender        string `json:"gender"`
+	Symptoms      string `json:"symptoms"`
+	MedicalHistory string `json:"medical_history"`
+}
+
+type GeminiResponse struct {
+	Candidates []struct {
+		Content struct {
+			Parts []struct {
+				Text string `json:"text"`
+			} `json:"parts"`
+		} `json:"content"`
+	} `json:"candidates"`
+}
+
+func askGemini(prompt string) (string, error) {
+	apiKey := os.Getenv("GEMINI_API_KEY")
+	url := os.Getenv("GEMINI_API_URL") + "?key=" + apiKey
+
+	requestBody := map[string]interface{}{
+		"contents": []interface{}{
+			map[string]interface{}{
+				"parts": []interface{}{
+					map[string]string{"text": prompt},
+				},
+			},
+		},
+	}
+
+	jsonBody, _ := json.Marshal(requestBody)
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, _ := io.ReadAll(resp.Body)
+	var geminiResp GeminiResponse
+	json.Unmarshal(body, &geminiResp)
+
+	if len(geminiResp.Candidates) == 0 {
+		return "No response from AI", nil
+	}
+
+	return geminiResp.Candidates[0].Content.Parts[0].Text, nil
+}
+
+func chatHandler(w http.ResponseWriter, r *http.Request) {
+	_, _, loggedIn := getLoggedInUser(r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req ChatRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	prompt := "Act as a medical expert. Answer this health query in a professional but understandable way: " + req.Message
+	response, err := askGemini(prompt)
+	if err != nil {
+		http.Error(w, "AI service error", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"response": response})
+}
+
+func predictDiseaseHandler(w http.ResponseWriter, r *http.Request) {
+	_, _, loggedIn := getLoggedInUser(r)
+	if !loggedIn {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	var req DiseasePredictionRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
+	prompt := fmt.Sprintf(`Act as a medical expert. Predict possible diseases based on these details:
+	- Age: %s
+	- Gender: %s
+	- Symptoms: %s
+	- Medical History: %s
+	
+	Provide potential diagnoses in order of likelihood, possible next steps, and when to seek urgent care.
+	Use clear language without medical jargon.`, req.Age, req.Gender, req.Symptoms, req.MedicalHistory)
+
+	response, err := askGemini(prompt)
+	if err != nil {
+		http.Error(w, "AI service error", http.StatusInternalServerError)
+		return
+	}
+
+	json.NewEncoder(w).Encode(map[string]string{"response": response})
+}
+
 func main() {
 	// Connect to MongoDB
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -99,6 +210,8 @@ func main() {
 	http.HandleFunc("/add-slot", addSlotHandler)
 	http.HandleFunc("/book", bookHandler)
 	http.HandleFunc("/logout", logoutHandler)
+	http.HandleFunc("/chat", chatHandler)
+	http.HandleFunc("/predict-disease", predictDiseaseHandler)
 
 	log.Println("Server running on http://localhost:8080")
 	http.ListenAndServe(":8080", nil)
