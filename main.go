@@ -11,6 +11,7 @@ import (
 	"time"
 	"os"
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"strings"
 	"io"
@@ -264,18 +265,24 @@ func buyMedicineHandler(w http.ResponseWriter, r *http.Request) {
     }
     defer file.Close()
 
-    // 2) OCR step (stubbed here—replace with real OCR)
-    presBytes, _ := io.ReadAll(file)
-    presText := string(presBytes) // or pass bytes to OCR lib
+	// 2) Convert the uploaded file to bytes
+	fileBytes, err := io.ReadAll(file)
+	if err != nil {
+	  http.Error(w, "Failed to read file: "+err.Error(), http.StatusBadRequest)
+	  return
+	}
 
-    // 3) Build prompt for Gemini
+	// Convert the byte slice to a base64 string
+	base64String := fmt.Sprintf("data:application/octet-stream;base64,%s", base64.StdEncoding.EncodeToString(fileBytes))
+
+	// 3) Build prompt for Gemini
 	prompt := `
-	Extract from the following prescription text a JSON array of objects.
+	Analyze the provided prescription file and extract a JSON array of objects.
 	Each object should have exactly the fields "name", "dosage", and "disease".
 	Respond with *only* the JSON array—no backticks, no markdown, no commentary.
 
-	Prescription Text:
-	` + presText
+	Prescription File (base64 encoded):
+	` + base64String
 
     // 4) Call Gemini
     response, err := askGemini(prompt)
