@@ -22,7 +22,7 @@
         <i class="fas fa-times" id="closeMenu"></i>
         <ul>
           <li><a href="/" >Home</a></li>
-          <li><a href="/services">Services</a></li>
+          <li><a href="/book_ambulance">Book Ambulance</a></li>
           <li><a href="/dashboard?role=doctor" {{if eq .Role "doctor"}}class="active"{{end}}>Doctors</a></li>
           <li><a href="/dashboard?role=patient" {{if eq .Role "patient"}}class="active"{{end}}>Patients</a></li>
           <li><a href="/about">About</a></li>
@@ -30,8 +30,13 @@
         </ul>
       </div>
       <div class="auth-buttons">
-        <span class="user-info">Logged in as: {{.User}} ({{.Role}})</span>
-        <a href="/logout" class="btn btn-secondary">Logout</a>
+        {{if .User}}
+          <span class="user-info">Logged in as: {{.User}} ({{.Role}})</span>
+          <a href="/logout" class="btn btn-secondary">Logout</a>
+        {{else}}
+          <a href="/login" class="btn btn-primary">Login</a>
+          <a href="/register" class="btn btn-primary">Sign Up</a>
+        {{end}}
       </div>
       <i class="fas fa-bars" id="menuIcon"></i>
     </div>

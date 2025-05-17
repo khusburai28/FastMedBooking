@@ -1,11 +1,14 @@
+{{define "book_ambulance.html"}}
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FastMedBooking - Login</title>
+  <title>FastMedBooking - Book Ambulance</title>
   <link rel="stylesheet" href="/static/css/style.css">
   <link rel="stylesheet" href="/static/css/responsive.css">
+  <link rel="stylesheet" href="/static/css/chat.css">
+  <script src="/static/js/chat.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -18,12 +21,12 @@
       <div class="nav-links" id="navLinks">
         <i class="fas fa-times" id="closeMenu"></i>
         <ul>
-          <li><a href="/#home" class="active">Home</a></li>
+          <li><a href="/" >Home</a></li>
           <li><a href="/book_ambulance">Book Ambulance</a></li>
-          <li><a href="/dashboard?role=doctor">Doctors</a></li>
-          <li><a href="/dashboard?role=patient">Patient</a></li>
-          <li><a href="/#about">About</a></li>
-          <li><a href="/#contact">Contact</a></li>
+          <li><a href="/dashboard?role=doctor" {{if eq .Role "doctor"}}class="active"{{end}}>Doctors</a></li>
+          <li><a href="/dashboard?role=patient" {{if eq .Role "patient"}}class="active"{{end}}>Patients</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/contact">Contact</a></li>
         </ul>
       </div>
       <div class="auth-buttons">
@@ -39,26 +42,53 @@
     </div>
   </nav>
 
-  <!-- Login Form -->
-  <section class="form-section mt-20" style="padding-top: 80px;">
-    <div class="container form-container">
-      <h2>Welcome Back</h2>
-      <form action="/login" method="post" class="login-form">
-        <div class="form-group">
-          <label for="username">Username</label>
-          <input type="text" id="username" name="username" placeholder="Enter your username" required>
-        </div>
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input type="password" id="password" name="password" placeholder="Enter your password" required>
-        </div>
-        <button type="submit" class="btn btn-primary btn-full">Login</button>
-      </form>
-      <p class="redirect-text">Don't have an account? <a href="/register">Sign up</a></p>
-    </div>
-  </section>
+    <!-- Main Content -->
+    <section class="hero">
+          <div class="container">
+                <h2>Book Ambulance</h2>
+                <p>Find and book an ambulance near you in Delhi.</p>
 
-  <!-- Footer -->
+                <!-- Map Container -->
+                <div id="map" style="height: 400px; width: 100%;">
+                     <!-- Map will be loaded here -->
+                </div>
+
+                <button class="btn btn-primary">Book Ambulance Now</button>
+          </div>
+     </section>
+
+     <script>
+          function initMap() {
+                // The location of Delhi
+                const delhi = { lat: 28.7041, lng: 77.1025 };
+                // The map, centered at Delhi
+                const map = new google.maps.Map(document.getElementById("map"), {
+                     zoom: 12,
+                     center: delhi,
+                });
+                // Dummy ambulance locations (replace with real-time data)
+                const ambulanceLocations = [
+                     { lat: 28.6448, lng: 77.2167, name: "Ambulance 1" },
+                     { lat: 28.5276, lng: 77.0691, name: "Ambulance 2" },
+                     { lat: 28.7355, lng: 77.1212, name: "Ambulance 3" }
+                ];
+
+                // Add markers for each ambulance
+                ambulanceLocations.forEach(location => {
+                     new google.maps.Marker({
+                          position: { lat: location.lat, lng: location.lng },
+                          map: map,
+                          title: location.name
+                     });
+                });
+          }
+
+          // Initialize the map
+          window.onload = initMap;
+     </script>
+     <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+
+    <!-- Footer -->
   <footer>
     <div class="container">
       <div class="footer-top">
@@ -107,7 +137,7 @@
     </div>
   </footer>
 
-
   <script src="/static/js/main.js"></script>
 </body>
 </html>
+{{end}}

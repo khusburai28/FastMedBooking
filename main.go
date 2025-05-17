@@ -204,6 +204,7 @@ func main() {
 	
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("static"))))
 	http.HandleFunc("/", homeHandler)
+	http.HandleFunc("/book_ambulance", bookAmbulanceHandler)
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
@@ -220,6 +221,18 @@ func main() {
 func hashPassword(password string) string {
 	hash := sha256.Sum256([]byte(password))
 	return hex.EncodeToString(hash[:])
+}
+
+func bookAmbulanceHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		templates.ExecuteTemplate(w, "book_ambulance.html", nil)
+		return		
+	}
+
+	if r.Method == http.MethodPost {
+		// Handle ambulance booking logic here
+		http.Redirect(w, r, "/", http.StatusSeeOther)
+	}
 }
 
 func homeHandler(w http.ResponseWriter, r *http.Request) {
