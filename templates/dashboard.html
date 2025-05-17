@@ -129,6 +129,44 @@
         </div>
         <div class="card-body">
           {{if .Slots}}
+          <div class="search-box mb-3">
+            <div class="input-group" style="display: flex;"></div>
+              <input type="text" id="searchInput" class="form-control" placeholder="Search by doctor name or description...">
+              <button class="btn btn-primary" type="button" id="searchButton" style="visibility: hidden;">
+                <i class="fas fa-search"></i> Search
+              </button>
+            </div>
+          </div>
+
+          <script>
+            document.addEventListener('DOMContentLoaded', function() {
+              const searchInput = document.getElementById('searchInput');
+              const searchButton = document.getElementById('searchButton');
+              const tableRows = document.querySelectorAll('#dataTable tbody tr');
+              
+              function performSearch() {
+                const searchTerm = searchInput.value.toLowerCase();
+                
+                tableRows.forEach(row => {
+                  const doctorName = row.cells[0].textContent.toLowerCase();
+                  const description = row.cells[3].textContent.toLowerCase();
+                  
+                  if (doctorName.includes(searchTerm) || description.includes(searchTerm)) {
+                    row.style.display = '';
+                  } else {
+                    row.style.display = 'none';
+                  }
+                });
+              }
+              
+              searchButton.addEventListener('click', performSearch);
+              searchInput.addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                  performSearch();
+                }
+              });
+            });
+          </script>
           <div class="table-responsive">
             <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
               <thead>
@@ -147,12 +185,73 @@
                   <td>{{.Date}}</td>
                   <td>{{.Time}}</td>
                   <td>{{.Description}}</td>
-                  <td>
-                    <form action="/book" method="post">
-                      <input type="hidden" name="id" value="{{.ID.Hex}}">
-                      <button type="submit" class="btn btn-primary btn-sm">Book</button>
-                    </form>
-                  </td>
+                    <td>
+                      <form id="bookingForm-{{.ID.Hex}}" action="/book" method="post">
+                        <input type="hidden" name="id" value="{{.ID.Hex}}">
+                        <button type="submit" class="btn btn-primary btn-sm" style="margin: 10px;">Book</button>
+                      </form>
+
+                      <!-- Ticket Modal -->
+                      <div id="ticketModal-{{.ID.Hex}}" class="modal" style="display:none; position:fixed; z-index:1000; left:0; top:0; width:100%; height:100%; overflow:auto; background-color:rgba(0,0,0,0.4);">
+                        <div class="modal-content" style="background-color:#fefefe; margin:10% auto; padding:20px; border:1px solid #888; width:60%; max-width:600px; border-radius:5px;">
+                          <span class="close" onclick="document.getElementById('ticketModal-{{.ID.Hex}}').style.display='none'; location.reload();" style="color:#aaa; float:right; font-size:28px; font-weight:bold; cursor:pointer;">&times;</span>
+                          <div id="ticket-{{.ID.Hex}}" class="ticket">
+                            <h3 style="text-align:center; color:#4e73df;">Appointment Confirmation</h3>
+                            <hr>
+                            <div style="padding:15px;">
+                              <p><strong>Token:</strong> <span id="token-{{.ID.Hex}}">FMB-{{.ID.Hex | printf "%.8s"}}</span></p>
+                              <p><strong>Doctor:</strong> {{.Doctor}}</p>
+                              <p><strong>Patient:</strong> {{$.User}}</p>
+                              <p><strong>Date:</strong> {{.Date}}</p>
+                              <p><strong>Time:</strong> {{.Time}}</p>
+                              <p><strong>Description:</strong> {{.Description}}</p>
+                            </div>
+                            <div style="text-align:center; margin-top:20px;">
+                              <button onclick="generatePDF('ticket-{{.ID.Hex}}', '{{.Doctor}}_appointment')" class="btn btn-success">Download PDF</button>
+                              <script>
+                                function generatePDF(elementId, filename) {
+                                  const element = document.getElementById(elementId);
+                                  
+                                  // Create a clone of the element to modify for PDF
+                                  const clone = element.cloneNode(true);
+                                  clone.style.width = '100%';
+                                  clone.style.padding = '20px';
+                                  clone.style.backgroundColor = '#fff';
+                                  
+                                  // Configure html2pdf options
+                                  const opt = {
+                                    margin: [0.5, 0.5, 0.5, 0.5],
+                                    filename: filename + '.pdf',
+                                    image: { type: 'jpeg', quality: 0.98 },
+                                    html2canvas: { scale: 2, useCORS: true },
+                                    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                                  };
+                                  
+                                  // Use html2pdf library to generate and download the PDF
+                                  html2pdf().from(clone).set(opt).save();
+                                }
+                              </script>
+                              <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <script>
+                        document.getElementById('bookingForm-{{.ID.Hex}}').addEventListener('submit', function(e) {
+                          e.preventDefault();
+                          // Show the modal ticket
+                          document.getElementById('ticketModal-{{.ID.Hex}}').style.display = 'block';
+                          
+                          // Submit the form in background
+                          const formData = new FormData(this);
+                          fetch('/book', {
+                            method: 'POST',
+                            body: formData
+                          });
+                        });
+                      </script>
+                    </td>
                 </tr>
                 {{end}}
               </tbody>
