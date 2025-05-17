@@ -40,8 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData.entries());
     
-    addMessage('user', `Age: ${data.age}, Gender: ${data.gender}, Symptoms: ${data.symptoms}, History: ${data.medical_history}`);
-    diseaseForm.reset();
+    addMessage('user', `Age: ${data.age}, Gender: ${data.gender}, Symptoms: ${data.symptoms}, Medical History: ${data.medical_history}`);
     document.getElementById('general_section').click();
     try {
       const response = await fetch('/predict-disease', {

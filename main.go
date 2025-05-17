@@ -168,7 +168,7 @@ func predictDiseaseHandler(w http.ResponseWriter, r *http.Request) {
 	- Medical History: %s
 	
 	Provide potential diagnoses in order of likelihood, possible next steps, and when to seek urgent care.
-	Use clear language without medical jargon.`, req.Age, req.Gender, req.Symptoms, req.MedicalHistory)
+	Use clear language without medical jargon. Answer in 450 characters. `, req.Age, req.Gender, req.Symptoms, req.MedicalHistory)
 
 	response, err := askGemini(prompt)
 	if err != nil {
