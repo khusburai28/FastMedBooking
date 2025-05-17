@@ -145,54 +145,54 @@
     </div>
   </section>
 
-  <!-- Add this just before the footer section -->
-<div class="chat-container">
-  <button class="chat-toggle btn btn-primary">
-    <i class="fas fa-comment-medical"></i>
-  </button>
-  <div class="chat-modal">
-    <div class="chat-header">
-      <h4>MedAI Assistant</h4>
-      <div class="chat-modes">
-        <button class="mode-btn active" data-mode="general">General Health</button>
-        <button class="mode-btn" data-mode="disease">Disease Prediction</button>
+  <!-- AI Chat -->
+  <div class="chat-container">
+    <button class="chat-toggle btn btn-primary">
+      <i class="fas fa-comment-medical"></i>
+    </button>
+    <div class="chat-modal">
+      <div class="chat-header">
+        <h4>MedAI Assistant</h4>
+        <div class="chat-modes">
+          <button class="mode-btn active" data-mode="general" id="general_section">General Health</button>
+          <button class="mode-btn" data-mode="disease" id="disease_section">Disease Prediction</button>
+        </div>
+        <button class="close-chat">&times;</button>
       </div>
-      <button class="close-chat">&times;</button>
-    </div>
-    <div class="chat-content">
-      <div class="chat-messages"></div>
-      <div class="disease-form" style="display: none;">
-        <form id="diseaseForm">
-          <div class="mb-3">
-            <label>Age</label>
-            <input type="number" name="age" required>
-          </div>
-          <div class="mb-3">
-            <label>Gender</label>
-            <select name="gender" required>
-              <option value="male">Male</option>
-              <option value="female">Female</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label>Symptoms</label>
-            <textarea name="symptoms" rows="3" required></textarea>
-          </div>
-          <div class="mb-3">
-            <label>Medical History</label>
-            <textarea name="medical_history" rows="2"></textarea>
-          </div>
-          <button type="submit" class="btn btn-primary">Analyze</button>
-        </form>
-      </div>
-      <div class="chat-input">
-        <input type="text" placeholder="Type your health query...">
-        <button class="send-btn btn btn-primary">Send</button>
+      <div class="chat-content">
+        <div class="chat-messages"></div>
+        <div class="disease-form" style="display: none;">
+          <form id="diseaseForm">
+            <div class="mb-3">
+              <label>Age</label>
+              <input type="number" name="age" required>
+            </div>
+            <div class="mb-3">
+              <label>Gender</label>
+              <select name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label>Symptoms</label>
+              <textarea name="symptoms" rows="2" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label>Medical History</label>
+              <textarea name="medical_history" rows="2"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Analyze</button>
+          </form>
+        </div>
+        <div class="chat-input">
+          <input type="text" placeholder="Type your health query...">
+          <button class="send-btn btn btn-primary">Send</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
   <!-- Footer -->
   <footer>

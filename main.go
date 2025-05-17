@@ -138,7 +138,7 @@ func chatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	prompt := "Act as a medical expert. Answer this health query in a professional but understandable way: " + req.Message
+	prompt := "Act as a medical expert and answer in 200 characters. Answer this health query in a professional but understandable way: " + req.Message
 	response, err := askGemini(prompt)
 	if err != nil {
 		http.Error(w, "AI service error", http.StatusInternalServerError)
