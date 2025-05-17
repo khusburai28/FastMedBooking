@@ -44,23 +44,40 @@
       {{if eq .Role "doctor"}}
       <div class="card shadow mb-4">
         <div class="card-header py-3">
-          <h6 class="m-0 font-weight-bold text-primary">Add New Appointment Slot</h6>
+          <h6 class="m-0 font-weight-bold text-primary">Add Multiple Appointment Slots</h6>
         </div>
         <div class="card-body">
-          <form action="/add-slot" method="post">
+          <form action="/add-slots-batch" method="post">
             <div class="mb-3">
-              <label for="date" class="form-label">Date</label>
-              <input type="date" id="date" name="date" class="form-control" required>
+              <label for="days" class="form-label">Select Days</label>
+              <select id="days" name="days" class="form-control" multiple required>
+                <option value="Monday">Monday</option>
+                <option value="Tuesday">Tuesday</option>
+                <option value="Wednesday">Wednesday</option>
+                <option value="Thursday">Thursday</option>
+                <option value="Friday">Friday</option>
+                <option value="Saturday">Saturday</option>
+                <option value="Sunday">Sunday</option>
+              </select>
+              <small class="text-muted">Hold down the Ctrl (windows) or Command (Mac) button to select multiple options.</small>
             </div>
             <div class="mb-3">
-              <label for="time" class="form-label">Time</label>
-              <input type="time" id="time" name="time" class="form-control" required>
+              <label for="startTime" class="form-label">Start Time</label>
+              <input type="time" id="startTime" name="startTime" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="endTime" class="form-label">End Time</label>
+              <input type="time" id="endTime" name="endTime" class="form-control" required>
+            </div>
+            <div class="mb-3">
+              <label for="slotDuration" class="form-label">Slot Duration (minutes)</label>
+              <input type="number" id="slotDuration" name="slotDuration" class="form-control" value="30" required>
             </div>
             <div class="mb-3">
               <label for="description" class="form-label">Description</label>
               <textarea id="description" name="description" class="form-control" placeholder="Details (optional)"></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">Add Slot</button>
+            <button type="submit" class="btn btn-primary">Add Slots</button>
           </form>
         </div>
       </div>
@@ -71,30 +88,30 @@
         </div>
         <div class="card-body">
           {{if .Slots}}
-            <div class="table-responsive">
-            <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
-              <thead>
-              <tr class="bg-primary text-white">
-                <th>Date</th>
-                <th>Time</th>
-                <th>Description</th>
-                <th>Status</th>
-                <th>Patient</th>
-              </tr>
-              </thead>
-              <tbody>
-              {{range .Slots}}
-              <tr>
-                <td>{{.Date}}</td>
-                <td>{{.Time}}</td>
-                <td>{{.Description}}</td>
-                <td>{{if .Booked}}<span class="badge bg-danger text-white">Booked</span>{{else}}<span class="badge bg-success text-white">Available</span>{{end}}</td>
-                <td>{{if .Booked}}{{.Patient}}{{else}}—{{end}}</td>
-              </tr>
-              {{end}}
-              </tbody>
-            </table>
-            </div>
+        <div class="table-responsive">
+        <table class="table table-bordered table-striped table-hover" id="dataTable" width="100%" cellspacing="0">
+          <thead>
+          <tr class="bg-primary text-white">
+            <th>Date</th>
+            <th>Time</th>
+            <th>Description</th>
+            <th>Status</th>
+            <th>Patient</th>
+          </tr>
+          </thead>
+          <tbody>
+          {{range .Slots}}
+          <tr>
+            <td>{{.Date}}</td>
+            <td>{{.Time}}</td>
+            <td>{{.Description}}</td>
+            <td>{{if .Booked}}<span class="badge bg-danger text-white">Booked</span>{{else}}<span class="badge bg-success text-white">Available</span>{{end}}</td>
+            <td>{{if .Booked}}{{.Patient}}{{else}}—{{end}}</td>
+          </tr>
+          {{end}}
+          </tbody>
+        </table>
+        </div>
           {{else}}
           <p>No slots available. Add one above.</p>
           {{end}}

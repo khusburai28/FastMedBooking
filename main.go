@@ -207,7 +207,7 @@ func main() {
 	http.HandleFunc("/register", registerHandler)
 	http.HandleFunc("/login", loginHandler)
 	http.HandleFunc("/dashboard", dashboardHandler)
-	http.HandleFunc("/add-slot", addSlotHandler)
+	http.HandleFunc("/add-slots-batch", addSlotsBatchHandler)
 	http.HandleFunc("/book", bookHandler)
 	http.HandleFunc("/logout", logoutHandler)
 	http.HandleFunc("/chat", chatHandler)
@@ -396,7 +396,7 @@ func dashboardHandler(w http.ResponseWriter, r *http.Request) {
 	templates.ExecuteTemplate(w, "dashboard.html", data)
 }
 
-func addSlotHandler(w http.ResponseWriter, r *http.Request) {
+func addSlotsBatchHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Redirect(w, r, "/", http.StatusSeeOther)
 		return
@@ -408,31 +408,73 @@ func addSlotHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	date := r.FormValue("date")
-	timeVal := r.FormValue("time")
+	err := r.ParseForm()
+	if err != nil {
+		http.Error(w, "Invalid form data", http.StatusBadRequest)
+		return
+	}
+
+	days := r.Form["days"]
+	startTime := r.FormValue("startTime")
+	endTime := r.FormValue("endTime")
+	slotDuration := r.FormValue("slotDuration")
 	description := r.FormValue("description")
 
-	if date == "" || timeVal == "" {
+	if len(days) == 0 || startTime == "" || endTime == "" || slotDuration == "" {
 		http.Error(w, "Missing fields", http.StatusBadRequest)
 		return
 	}
 
-	newAppointment := Appointment{
-		Doctor:      username,
-		Date:        date,
-		Time:        timeVal,
-		Description: description,
-		Booked:      false,
-		Patient:     "",
+	duration, err := time.ParseDuration(slotDuration + "m")
+	if err != nil {
+		http.Error(w, "Invalid slot duration", http.StatusBadRequest)
+		return
+	}
+
+	startTimeParsed, err := time.Parse("15:04", startTime)
+	if err != nil {
+		http.Error(w, "Invalid start time", http.StatusBadRequest)
+		return
+	}
+
+	endTimeParsed, err := time.Parse("15:04", endTime)
+	if err != nil {
+		http.Error(w, "Invalid end time", http.StatusBadRequest)
+		return
+	}
+
+	if endTimeParsed.Before(startTimeParsed) {
+		http.Error(w, "End time must be after start time", http.StatusBadRequest)
+		return
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err := apptColl.InsertOne(ctx, newAppointment)
-	if err != nil {
-		http.Error(w, "Failed to add appointment", http.StatusInternalServerError)
-		return
+	appointments := []interface{}{}
+
+	for _, day := range days {
+		slotTime := startTimeParsed
+		for slotTime.Before(endTimeParsed) {
+			newAppointment := Appointment{
+				Doctor:      username,
+				Date:        day,
+				Time:        slotTime.Format("15:04"),
+				Description: description,
+				Booked:      false,
+				Patient:     "",
+			}
+			appointments = append(appointments, newAppointment)
+			slotTime = slotTime.Add(duration)
+		}
+	}
+
+	if len(appointments) > 0 {
+		_, err = apptColl.InsertMany(ctx, appointments)
+		if err != nil {
+			http.Error(w, "Failed to add appointments", http.StatusInternalServerError)
+			return
+		}
 	}
 
 	http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
